@@ -1,7 +1,7 @@
 {
     // "terminal.integrated.cwd": "Drive/04. Competition (due Jun 12th 11AM UTC)/competition/attempt/",
     "files.exclude": {
-        "**/*.venv": true,
+       // "**/*.venv": true,
         // "**/*.ipynb": true,
         "**/template": true,
         "**/__pycache__": true,
