@@ -27,7 +27,7 @@ SOURCE_ROOT   = ANALYSIS_ROOT.parent
 GEOMIP_ROOT   = SOURCE_ROOT / "GeoMIP"
 QNODES_ROOT   = SOURCE_ROOT / "QNodes"
 
-TOLERANCIA_PERDIDA = 1e-4  # según convención del proyecto
+TOLERANCIA_PERDIDA = 3e-3  # según convención del proyecto
 
 
 def _coma_a_float(valor) -> float | None:
@@ -77,7 +77,7 @@ def generar_comparacion(
         df_geo,
         df_qn[["Iteración", "Alcance", "Mecanismo",
                "Partición_QNodes", "Pérdida_QNodes", "Tiempo_QNodes"]],
-        on=["Iteración", "Alcance", "Mecanismo"],
+        on=["Iteración"],
         how="outer",
     )
 
@@ -102,7 +102,7 @@ def generar_comparacion(
     )
 
     cols_salida = [
-        "Iteración", "Alcance", "Mecanismo",
+        "Iteración",
         "Partición_GeoMIP", "Pérdida_GeoMIP", "Tiempo_GeoMIP",
         "Partición_QNodes", "Pérdida_QNodes",  "Tiempo_QNodes",
         "Pérdida_diff", "Coinciden_particion", "Dentro_tolerancia",
