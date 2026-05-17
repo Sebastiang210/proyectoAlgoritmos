@@ -10,17 +10,19 @@
 
 ### Fase 1 — Extensión KGeoMIP
 
-6. Crear `source/GeoMIP/src/Method2.../src/controllers/strategies/kgeomip.py` con clase `KGeoMIP(GeometricSIA)`.
-7. Agregar parámetro `k: int` en `aplicar_estrategia`.
-8. Implementar `generar_k_particiones_candidatas()`: dado el conjunto de vértices `V`, generar particiones de `V` en exactamente `k` partes no vacías guiadas por la heurística geométrica (números de Stirling de segundo tipo como cota del espacio de búsqueda).
-9. Adaptar `find_kmip()` para iterar sobre `k` grupos en lugar de dos.
-10. Validar que para `k=2` el resultado coincide con `GeometricSIA`.
+<!-- ✅ COMPLETADO (Sesión 2) -->
+6. Crear `source/GeoMIP/src/Method2.../src/controllers/strategies/kgeomip.py` con clase `KGeoMIP(GeometricSIA)`. ✅
+7. Agregar parámetro `k: int` en `aplicar_estrategia`. ✅
+8. Implementar `generar_k_particiones_candidatas()`: dado el conjunto de vértices `V`, generar particiones de `V` en exactamente `k` partes no vacías guiadas por la heurística geométrica (números de Stirling de segundo tipo como cota del espacio de búsqueda). ✅
+9. Adaptar `find_kmip()` para iterar sobre `k` grupos en lugar de dos. ✅
+10. Validar que para `k=2` el resultado coincide con `GeometricSIA`. (pendiente ejecución TV-02)
 
 ### Fase 2 — Extensión KQNodes
 
-11. Crear `source/QNodes/src/strategies/kqnodes.py` con clase `KQNodes(QNodes)`.
-12. Extender `algorithm` para que en lugar de formar un único par candidato por fase, forme `k` grupos mediante `k-1` cortes sucesivos del proceso de Queyranne.
-13. Validar para `k=2`.
+<!-- ✅ COMPLETADO (Sesión 2) -->
+11. Crear `source/QNodes/src/strategies/kqnodes.py` con clase `KQNodes(QNodes)`. ✅
+12. Extender `algorithm` para que en lugar de formar un único par candidato por fase, forme `k` grupos mediante `k-1` cortes sucesivos del proceso de Queyranne (`algorithm_k`). ✅
+13. Validar para `k=2`. (pendiente ejecución TV-03)
 
 ### Fase 3 — Experimentación y resultados
 
