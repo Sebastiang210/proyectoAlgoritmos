@@ -163,7 +163,7 @@ class QNodes(SIA):
             particion=fmt_mip,
         )
 
-    @profile(context={TYPE_TAG: QNODES_ANALYSIS_TAG})
+    #@profile(context={TYPE_TAG: QNODES_ANALYSIS_TAG})
     def algorithm(self, vertices: list[tuple[int, int]]):
         """
         Implementa el algoritmo Q para encontrar la partición óptima de un sistema que minimiza la pérdida de información, basándose en principios de submodularidad dentro de la teoría de lainformación.

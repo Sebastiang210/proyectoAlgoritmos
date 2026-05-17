@@ -116,7 +116,7 @@ class QNodes(SIA):
 
         self.logger = SafeLogger(QNODES_STRAREGY_TAG)
 
-    @profile(context={TYPE_TAG: QNODES_ANALYSIS_TAG})
+    #@profile(context={TYPE_TAG: QNODES_ANALYSIS_TAG})
     def aplicar_estrategia(
         self,
         condicion: str,

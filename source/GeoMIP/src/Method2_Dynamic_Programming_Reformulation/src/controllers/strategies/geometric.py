@@ -40,7 +40,7 @@ class GeometricSIA(SIA):
         self.tabla :dict[int, list[tuple[int, int]]] = {}
         self.memoria_particiones: dict[tuple[int, int], tuple[float, float]] = {}
 
-    @profile(context={TYPE_TAG: GEOMETRIC_ANALYSIS_TAG})
+    #@profile(context={TYPE_TAG: GEOMETRIC_ANALYSIS_TAG})
     def aplicar_estrategia(
         self,
         condicion: str,

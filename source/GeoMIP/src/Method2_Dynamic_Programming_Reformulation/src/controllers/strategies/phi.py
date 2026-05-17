@@ -55,7 +55,7 @@ class Phi(SIA):
         )
         self.logger = SafeLogger(PYPHI_STRAREGY_TAG)
 
-    @profile(context={TYPE_TAG: PYPHI_ANALYSIS_TAG})
+    #@profile(context={TYPE_TAG: PYPHI_ANALYSIS_TAG})
     def aplicar_estrategia(self, condiciones: str, alcance: str, mecanismo: str):
         self.sia_tiempo_inicio = time.time()
         alcance_idx, mecanismo_idx, subsistema = self.preparar_subsistema(

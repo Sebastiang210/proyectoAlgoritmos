@@ -148,7 +148,7 @@ class BruteForce(SIA):
         solucion_base.tiempo_ejecucion = time.time() - self.sia_tiempo_inicio
         return solucion_base
 
-    @profile(context={TYPE_TAG: BRUTEFORCE_FULL_ANALYSIS_TAG})
+    #@profile(context={TYPE_TAG: BRUTEFORCE_FULL_ANALYSIS_TAG})
     def analizar_completamente_una_red(self) -> None:
         """
         Se prepara el directorio de salida donde almacenaremos el análisis completo de una red específica.

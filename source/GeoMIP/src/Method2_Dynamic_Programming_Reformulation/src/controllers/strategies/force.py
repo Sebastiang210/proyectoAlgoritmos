@@ -66,9 +66,9 @@ class BruteForce(SIA):
         )
         self.logger = SafeLogger(BRUTEFORCE_STRAREGY_TAG)
 
-    @profile(
-        context={TYPE_TAG: BRUTEFORCE_ANALYSIS_TAG}
-    )  # Descomentame y revisa el directorio `review/profiling/`! #
+    #@profile(
+    #    context={TYPE_TAG: BRUTEFORCE_ANALYSIS_TAG}
+    # )  # Descomentame y revisa el directorio `review/profiling/`! #
     def aplicar_estrategia(self, condiciones: str, alcance: str, mecanismo: str):
         """
         Análisis por fuerza brutal sobre una red específica para un sistema candidato llevado a un subsistema determinado por el alcance y mecanismo indicado por el usuario.
@@ -137,7 +137,7 @@ class BruteForce(SIA):
 
         return solucion_base
 
-    @profile(context={TYPE_TAG: BRUTEFORCE_FULL_ANALYSIS_TAG})
+    #@profile(context={TYPE_TAG: BRUTEFORCE_FULL_ANALYSIS_TAG})
     def analizar_completamente_una_red(self) -> None:
         """
         Se prepara el directorio de salida donde almacenaremos el análisis completo de una red específica.
