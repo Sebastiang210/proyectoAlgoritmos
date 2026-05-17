@@ -126,21 +126,7 @@ class KQNodes(QNodes):
         self.memoria_k_particiones = {}
         self.clave_submodular = [], []
 
-        # k=2: delegar al algoritmo original de QNodes (garantiza TV-03)
-        if self.k == 2:
-            mip = self.algorithm(vertices)
-            fmt_mip = fmt_biparticion_q(list(mip), self.nodes_complement(mip))
-            perdida, dist = self.memoria_grupo_candidato[mip]
-            return Solution(
-                estrategia=KQNODES_LABEL,
-                perdida=perdida,
-                distribucion_subsistema=self.sia_dists_marginales,
-                distribucion_particion=dist,
-                tiempo_total=time.time() - self.sia_tiempo_inicio,
-                particion=fmt_mip,
-            )
-
-        # k>2: algoritmo k extendido
+        # Siempre pasa por algorithm_k para que k=2 también quede validado (TV-03)
         mejor_grupos = self.algorithm_k(vertices, self.k)
         clave = tuple(sorted(mejor_grupos[0]))
         perdida, dist = self.memoria_k_particiones.get(

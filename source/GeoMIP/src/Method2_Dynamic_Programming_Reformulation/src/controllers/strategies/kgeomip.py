@@ -194,35 +194,42 @@ class KGeoMIP(GeometricSIA):
         """
         Evalúa la EMD de una k-partición representada como lista de k grupos.
 
-        Cada grupo es una lista de vértices (tiempo, índice). La EMD se calcula
-        como la suma de EMDs de cada bipartición (grupo vs. complemento).
-        El producto tensorial aproximado se obtiene evaluando la bipartición
-        del sistema donde futuros y presentes corresponden al primer grupo.
+        Para que k=2 coincida exactamente con GeometricSIA (TV-02), la evaluación
+        sigue la misma convención de bipartir():
+          - futuros   = índices de ncubos del grupo GRANDE (grupos[-1])
+          - presentes = todas las dims presentes del grupo GRANDE
 
-        La clave en memoria_kparticiones es la tupla del primer grupo.
+        Para k>2 se evalúa CADA grupo como si fuera el "lado grande" de un corte
+        binario contra el resto (usando los futuros y presentes de ese grupo).
+        Se almacena la EMD de cada evaluación; find_kmip toma la mínima global.
+
+        La clave en memoria_kparticiones es la tupla ordenada del primer grupo
+        (el grupo "separado"), lo que diferencia candidatas entre sí.
         """
-        futuros_grupo: list[int] = []
-        presentes_grupo: list[int] = []
+        for i, grupo_evaluado in enumerate(grupos):
+            futuros_grupo: list[int] = []
+            presentes_grupo: list[int] = []
 
-        for tiempo, idx in grupos[0]:
-            if tiempo == EFECTO:
-                futuros_grupo.append(idx)
-            else:
-                presentes_grupo.append(idx)
+            for tiempo, idx in grupo_evaluado:
+                if tiempo == EFECTO:
+                    futuros_grupo.append(idx)
+                else:
+                    presentes_grupo.append(int(idx))
 
-        futuros_arr = np.array(futuros_grupo, dtype=np.int8)
-        presentes_arr = np.array(presentes_grupo, dtype=np.int8)
+            futuros_arr = np.array(futuros_grupo, dtype=np.int8)
+            presentes_arr = np.array(presentes_grupo, dtype=np.int8)
 
-        try:
-            particion = self.sia_subsistema.bipartir(futuros_arr, presentes_arr)
-            dist = particion.distribucion_marginal()
-            emd = emd_efecto(dist, self.sia_dists_marginales)
-        except Exception as exc:
-            self.logger.debug(f"Error evaluando partición: {exc}")
-            return
+            try:
+                particion = self.sia_subsistema.bipartir(futuros_arr, presentes_arr)
+                dist = particion.distribucion_marginal()
+                emd = emd_efecto(dist, self.sia_dists_marginales)
+            except Exception as exc:
+                self.logger.debug(f"Error evaluando grupo {i}: {exc}")
+                continue
 
-        clave = tuple(sorted(grupos[0]))
-        self.memoria_kparticiones[clave] = (emd, dist)
+            # Clave única por grupo evaluado para diferenciar candidatas
+            clave = tuple(sorted(grupo_evaluado))
+            self.memoria_kparticiones[clave] = (emd, dist)
 
 
     def generar_k_particiones_candidatas(self, k: int) -> list[list[list[tuple]]]:
@@ -292,10 +299,15 @@ class KGeoMIP(GeometricSIA):
 
     def _candidatas_desde_tabla(self, k: int) -> list[list[list[tuple]]]:
         """
-        Genera k-particiones greedy usando los costos de la tabla de transiciones.
+        Genera k-particiones candidatas siguiendo la misma lógica que
+        identificar_particiones_optimas() de GeometricSIA.
 
-        Para cada combinación de (k-1) cortes sucesivos sobre los costos del
-        nivel más alto de Hamming, produce una partición candidata.
+        Para k=2: produce exactamente las mismas n biparticiones (una por cada
+        futuro excluido), garantizando TV-02.
+
+        Para k>2: produce todas las C(n_futuros, k-1) combinaciones de futuros
+        singletones + un grupo resto con los futuros restantes y todos los
+        presentes. Es la extensión natural de la heurística geométrica.
         """
         vertices_futuro = [
             (EFECTO, int(idx)) for idx in self.sia_subsistema.indices_ncubos
@@ -303,37 +315,30 @@ class KGeoMIP(GeometricSIA):
         vertices_presente = [
             (ACTUAL, int(dim)) for dim in self.sia_subsistema.dims_ncubos
         ]
-        vertices = vertices_futuro + vertices_presente
-
-        clave_tabla = (tuple(self.caminos[0][0]), tuple(self.estado_final))
-        costos = self.tabla_transiciones.get(clave_tabla, [])
-
-        if not costos:
-            return [[vertices]]
 
         n_futuros = len(vertices_futuro)
-        # Ordenar índices futuros por costo (mayor primero: los más "separables")
-        indices_ordenados = sorted(range(n_futuros), key=lambda i: costos[i], reverse=True)
-
         candidatas = []
-        # Generar particiones quitando 1 futuro por grupo: base de k=2
-        for corte in range(min(k - 1, n_futuros)):
-            idx_separado = indices_ordenados[corte]
-            grupo_separado = [vertices_futuro[idx_separado]]
-            resto = [v for i, v in enumerate(vertices) if not (
-                i < n_futuros and i == idx_separado
-            )]
-            candidatas.append([grupo_separado, resto])
 
-        # Para k>2 combinar los cortes: partir el "resto" recursivamente
-        if k > 2 and len(indices_ordenados) >= k - 1:
-            indices_top = indices_ordenados[: k - 1]
-            grupos_separados = [[vertices_futuro[i]] for i in indices_top]
-            grupo_resto = [
-                v for i, v in enumerate(vertices)
-                if not (i < n_futuros and i in indices_top)
-            ]
-            candidatas.append(grupos_separados + [grupo_resto])
+        if k == 2:
+            # Replica exacta de identificar_particiones_optimas(): excluir
+            # cada futuro una vez y evaluarlo como grupo separado vs. resto.
+            for idx in range(n_futuros):
+                grupo_separado = [vertices_futuro[idx]]
+                grupo_resto = (
+                    [v for i, v in enumerate(vertices_futuro) if i != idx]
+                    + vertices_presente
+                )
+                candidatas.append([grupo_separado, grupo_resto])
+        else:
+            # k>2: singletones de (k-1) futuros + grupo resto
+            from itertools import combinations
+            for indices_sep in combinations(range(n_futuros), min(k - 1, n_futuros)):
+                grupos_sep = [[vertices_futuro[i]] for i in indices_sep]
+                grupo_resto = (
+                    [v for i, v in enumerate(vertices_futuro) if i not in indices_sep]
+                    + vertices_presente
+                )
+                candidatas.append(grupos_sep + [grupo_resto])
 
         return candidatas
 
