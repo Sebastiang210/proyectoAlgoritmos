@@ -74,40 +74,18 @@ class KQNodes(QNodes):
         self.memoria_k_particiones: dict[tuple, tuple[float, np.ndarray]] = {}
 
 
-    def aplicar_estrategia(
-        self,
-        estado_inicial: str,
-        condicion: str,
-        alcance: str,
-        mecanismo: str,
-        k: int | None = None,
-    ) -> Solution:
-        """
-        Aplica la búsqueda de la k-MIP usando el algoritmo de Queyranne extendido.
-
-        Args:
-            estado_inicial: cadena binaria del estado inicial del sistema.
-            condicion: cadena binaria de condición de fondo.
-            alcance: cadena binaria de alcance (futuro).
-            mecanismo: cadena binaria de mecanismo (presente).
-            k: número de partes. Si es None usa self.k.
+    def _montar_vertices(self) -> list:
+        """Configura atributos de vértices desde el subsistema ya preparado.
 
         Returns:
-            Solution con la k-partición de menor pérdida.
+            Lista ordenada de vértices (presente + futuro).
         """
-        if k is not None:
-            self.k = k
-
-        # Preparar subsistema (hereda de SIA vía QNodes)
-        self.sia_preparar_subsistema(estado_inicial, condicion, alcance, mecanismo)
-
         futuro = tuple(
             (EFFECT, idx) for idx in self.sia_subsistema.indices_ncubos
         )
         presente = tuple(
             (ACTUAL, idx) for idx in self.sia_subsistema.dims_ncubos
         )
-
         self.m = self.sia_subsistema.indices_ncubos.size
         self.n = self.sia_subsistema.dims_ncubos.size
         self.indices_alcance = self.sia_subsistema.indices_ncubos
@@ -116,24 +94,37 @@ class KQNodes(QNodes):
             np.zeros(self.n, dtype=np.int8),
             np.zeros(self.m, dtype=np.int8),
         )
-
-        vertices = list(presente + futuro)
         self.vertices = set(presente + futuro)
+        return list(presente + futuro)
 
-        # Limpiar memoización de la llamada anterior
+    def ejecutar_k(self, k: int) -> Solution:
+        """Corre el algoritmo para k dado asumiendo que el subsistema ya está
+        preparado (no llama sia_preparar_subsistema).
+
+        Preserva sia_subsistema.memo (cache de bipartir) entre llamadas
+        consecutivas con distintos k sobre el mismo subsistema. Solo limpia
+        las memorias propias del algoritmo (delta, grupo candidato, k-partes).
+
+        Args:
+            k: número de partes deseado.
+
+        Returns:
+            Solution con la k-partición de menor pérdida.
+        """
+        self.k = k
+        # Solo limpia memorias del algoritmo; NO toca sia_subsistema.memo
         self.memoria_delta = {}
         self.memoria_grupo_candidato = {}
         self.memoria_k_particiones = {}
         self.clave_submodular = [], []
 
-        # Siempre pasa por algorithm_k para que k=2 también quede validado (TV-03)
+        vertices = self._montar_vertices()
         mejor_grupos = self.algorithm_k(vertices, self.k)
         clave = tuple(sorted(mejor_grupos[0]))
         perdida, dist = self.memoria_k_particiones.get(
             clave, (float("inf"), self.sia_dists_marginales)
         )
         fmt_mip = fmt_biparticion_q(list(clave), self.nodes_complement(list(clave)))
-
         return Solution(
             estrategia=KQNODES_LABEL,
             perdida=perdida,
@@ -142,6 +133,27 @@ class KQNodes(QNodes):
             tiempo_total=time.time() - self.sia_tiempo_inicio,
             particion=fmt_mip,
         )
+
+    def aplicar_estrategia(
+        self,
+        estado_inicial: str,
+        condicion: str,
+        alcance: str,
+        mecanismo: str,
+        k: int | None = None,
+    ) -> Solution:
+        """Prepara el subsistema y aplica la búsqueda de la k-MIP.
+
+        Para reutilizar el subsistema entre distintos k sin reconstruirlo,
+        llama directamente a sia_preparar_subsistema + ejecutar_k.
+
+        Returns:
+            Solution con la k-partición de menor pérdida.
+        """
+        if k is not None:
+            self.k = k
+        self.sia_preparar_subsistema(estado_inicial, condicion, alcance, mecanismo)
+        return self.ejecutar_k(self.k)
 
 
     def algorithm_k(

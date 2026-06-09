@@ -1,9 +1,17 @@
 """
 run_kqnodes_batch.py — Experimentos K-particiones con QNodes, N=8
 =================================================================
-Ejecuta QNodes (baseline), KQNodes(k=2) y KQNodes(k=3) sobre los 10
-casos definidos para N=8 (N8A.csv) y escribe los resultados en:
+Ejecuta KQNodes(k=2) y KQNodes(k=3) sobre los 10 casos definidos para
+N=8 (N8A.csv), compartiendo el subsistema y la cache de bipartir entre
+ambas ejecuciones para cada caso.
 
+Optimización clave
+------------------
+Por caso se llama sia_preparar_subsistema UNA sola vez. Luego:
+  - ejecutar_k(k=2) → baseline (== QNodes TV-03)
+  - ejecutar_k(k=3) → hereda sia_subsistema.memo de k=2
+
+Escribe los resultados en:
     source/QNodes/results/resultados_kqnodes_n8.csv
 
 Columnas del CSV
@@ -27,7 +35,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from src.strategies.q_nodes import QNodes
 from src.strategies.kqnodes import KQNodes
 
 # ── Constantes ────────────────────────────────────────────────────────────────
@@ -69,7 +76,13 @@ def _cargar_tpm() -> np.ndarray:
 
 
 def _ejecutar(caso: Caso, tpm: np.ndarray) -> dict:
-    """Corre QNodes baseline + KQNodes(k) para todos los K_VALS."""
+    """
+    Por caso construye el subsistema UNA sola vez y corre k=2 y k=3
+    compartiendo sia_subsistema.memo (cache de bipartir).
+
+    k=2 actúa como baseline QNodes (TV-03 validado).
+    k=3 hereda todos los bipartir ya calculados por k=2.
+    """
     fila: dict = {
         "caso_id":     caso.id,
         "descripcion": caso.descripcion,
@@ -77,32 +90,48 @@ def _ejecutar(caso: Caso, tpm: np.ndarray) -> dict:
         "mecanismo":   caso.mecanismo,
     }
 
-    # ── Baseline QNodes ─────────────────────────────────────────────────────
+    solver = KQNodes(tpm, k=2)
+
+    # ── Preparar subsistema una sola vez ──────────────────────────────────────
     try:
-        t0  = time.perf_counter()
-        sol = QNodes(tpm).aplicar_estrategia(
+        solver.sia_preparar_subsistema(
             ESTADO, caso.condicion, caso.alcance, caso.mecanismo
         )
-        fila["q_perdida"] = float(sol.perdida)
-        fila["q_tiempo"]  = round(time.perf_counter() - t0, 6)
     except Exception as exc:
-        fila["q_perdida"] = None
-        fila["q_tiempo"]  = None
-        print(f"  [ERROR qnodes] {exc}")
-
-    # ── KQNodes por cada k ──────────────────────────────────────────────────
-    for k in K_VALS:
-        try:
-            t0  = time.perf_counter()
-            sol = KQNodes(tpm, k=k).aplicar_estrategia(
-                ESTADO, caso.condicion, caso.alcance, caso.mecanismo
-            )
-            fila[f"kq_k{k}_perdida"] = float(sol.perdida)
-            fila[f"kq_k{k}_tiempo"]  = round(time.perf_counter() - t0, 6)
-        except Exception as exc:
+        print(f"  [ERROR preparar subsistema] {exc}")
+        for k in K_VALS:
             fila[f"kq_k{k}_perdida"] = None
             fila[f"kq_k{k}_tiempo"]  = None
-            print(f"  [ERROR kqnodes k={k}] {exc}")
+        fila["q_perdida"] = None
+        fila["q_tiempo"]  = None
+        return fila
+
+    # ── k=2 (== baseline QNodes, TV-03) ──────────────────────────────────────
+    try:
+        t0  = time.perf_counter()
+        sol = solver.ejecutar_k(k=2)
+        t_k2 = round(time.perf_counter() - t0, 6)
+        fila["q_perdida"]      = float(sol.perdida)   # baseline reutilizado
+        fila["q_tiempo"]       = t_k2
+        fila["kq_k2_perdida"]  = float(sol.perdida)
+        fila["kq_k2_tiempo"]   = t_k2
+    except Exception as exc:
+        print(f"  [ERROR kqnodes k=2] {exc}")
+        fila["q_perdida"]     = None
+        fila["q_tiempo"]      = None
+        fila["kq_k2_perdida"] = None
+        fila["kq_k2_tiempo"]  = None
+
+    # ── k=3 (hereda sia_subsistema.memo de k=2) ───────────────────────────────
+    try:
+        t0  = time.perf_counter()
+        sol = solver.ejecutar_k(k=3)
+        fila["kq_k3_perdida"] = float(sol.perdida)
+        fila["kq_k3_tiempo"]  = round(time.perf_counter() - t0, 6)
+    except Exception as exc:
+        print(f"  [ERROR kqnodes k=3] {exc}")
+        fila["kq_k3_perdida"] = None
+        fila["kq_k3_tiempo"]  = None
 
     return fila
 
@@ -111,6 +140,7 @@ def main():
     sep = "=" * 68
     print(sep)
     print("  KQNodes Batch N=8  |  k ∈ {2,3}  →  resultados_kqnodes_n8.csv")
+    print("  Subsistema compartido por caso | bipartir.memo heredado k2→k3")
     print(sep)
 
     tpm = _cargar_tpm()
@@ -125,13 +155,11 @@ def main():
         q_p  = fila.get("q_perdida")
         k2_p = fila.get("kq_k2_perdida")
         k3_p = fila.get("kq_k3_perdida")
-        q_t  = fila.get("q_tiempo")
         k2_t = fila.get("kq_k2_tiempo")
         k3_t = fila.get("kq_k3_tiempo")
 
-        print(f"  baseline: perdida={q_p}  t={q_t}s")
-        print(f"  k=2     : perdida={k2_p}  t={k2_t}s")
-        print(f"  k=3     : perdida={k3_p}  t={k3_t}s")
+        print(f"  baseline/k=2: perdida={k2_p}  t={k2_t}s")
+        print(f"  k=3         : perdida={k3_p}  t={k3_t}s")
         print()
 
     # ── Guardar CSV ──────────────────────────────────────────────────────────

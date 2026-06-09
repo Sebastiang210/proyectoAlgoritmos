@@ -88,70 +88,61 @@ class KGeoMIP(GeometricSIA):
         self.memoria_kparticiones: dict[tuple, tuple[float, np.ndarray]] = {}
 
 
-    def aplicar_estrategia(
+    def _preparar_geometria(
         self,
         condicion: str,
         alcance: str,
         mecanismo: str,
         tpm: np.ndarray,
-        k: int | None = None,
-    ) -> Solution:
+    ) -> None:
+        """Construye el subsistema y la tabla de costos geométrica.
+
+        Debe llamarse una sola vez por caso. Limpia tabla_transiciones antes
+        de construir, de modo que sea seguro reutilizar la instancia entre
+        distintos k del mismo caso sin recalcular el subsistema.
         """
-        Aplica la búsqueda de la k-MIP sobre el subsistema definido por
-        (condicion, alcance, mecanismo, tpm).
-
-        Args:
-            condicion: cadena binaria de condición.
-            alcance: cadena binaria de alcance (futuro).
-            mecanismo: cadena binaria de mecanismo (presente).
-            tpm: Matriz de Probabilidad de Transición.
-            k: número de partes. Si es None usa self.k.
-
-        Returns:
-            Solution con la k-partición de menor pérdida.
-        """
-        if k is not None:
-            self.k = k
-
-        # Preparar subsistema (hereda de SIA vía GeometricSIA)
         self.sia_preparar_subsistema(condicion, alcance, mecanismo, tpm)
-
         futuro = tuple(
             (EFECTO, efecto) for efecto in self.sia_subsistema.indices_ncubos
         )
         presente = tuple(
             (ACTUAL, actual) for actual in self.sia_subsistema.dims_ncubos
         )
-
-        # Cache de datos planos para calcular_costo (hereda de GeometricSIA)
-        self._flat_data = [
-            ncubo.data.ravel() for ncubo in self.sia_subsistema.ncubos
-        ]
-
+        self._flat_data = [ncubo.data.ravel() for ncubo in self.sia_subsistema.ncubos]
         self.vertices = set(presente + futuro)
         dims = self.sia_subsistema.dims_ncubos
         self.estado_inicial = self.sia_subsistema.estado_inicial[dims]
         self.estado_final = 1 - self.estado_inicial
-
-        # Construir tabla de costos geométrica (igual que GeometricSIA)
         self.idx_ncubos = list(range(len(self.sia_subsistema.indices_ncubos)))
+        # Limpiar tabla antes de poblarla para este subsistema
+        self.tabla_transiciones.clear()
         self.caminos = {0: [self.estado_inicial.tolist()]}
         self.tabla_transiciones[
             tuple(self.caminos[0][0]), tuple(self.caminos[0][0])
         ] = [0.0] * len(self.sia_subsistema.indices_ncubos)
-
         for nivel in range(1, len(self.estado_inicial) + 1):
             self.calcular_costos_nivel(self.estado_final, nivel)
 
-        # Buscar la k-MIP
+    def ejecutar_k(self, k: int) -> Solution:
+        """Corre find_kmip para k dado asumiendo geometría ya preparada.
+
+        Preserva tabla_transiciones y sia_subsistema.memo entre llamadas
+        consecutivas con distintos k sobre el mismo subsistema. Solo limpia
+        la memoria de k-particiones.
+
+        Args:
+            k: número de partes deseado.
+
+        Returns:
+            Solution con la k-partición de menor pérdida.
+        """
+        self.k = k
         self.memoria_kparticiones = {}
         mejor_clave = self.find_kmip()
-
+        perdida, dist = self.memoria_kparticiones[mejor_clave]
         fmt_mip = fmt_biparte_q(
             list(mejor_clave), self.nodes_complement(list(mejor_clave))
         )
-        perdida, dist = self.memoria_kparticiones[mejor_clave]
-
         return Solution(
             estrategia=KGEOMIP_LABEL,
             perdida=perdida,
@@ -160,6 +151,22 @@ class KGeoMIP(GeometricSIA):
             tiempo_total=time.time() - self.sia_tiempo_inicio,
             particion=fmt_mip,
         )
+
+    def aplicar_estrategia(
+        self,
+        condicion: str,
+        alcance: str,
+        mecanismo: str,
+        tpm: np.ndarray,
+        k: int | None = None,
+    ) -> Solution:
+        """Prepara la geometría y busca la k-MIP. Delega en
+        _preparar_geometria + ejecutar_k para facilitar reutilización.
+        """
+        if k is not None:
+            self.k = k
+        self._preparar_geometria(condicion, alcance, mecanismo, tpm)
+        return self.ejecutar_k(self.k)
 
 
     def find_kmip(self) -> tuple:
