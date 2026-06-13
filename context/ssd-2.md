@@ -540,7 +540,7 @@ def ncubo_3d():
 def subsistema_n3(sistema_pequeno):
     tpm, condicion, alcance, mecanismo = sistema_pequeno
     manager = Manager("100")
-    from src.controllers.strategies.geometric import GeometricSIA
+    from src.controllers.strategies.geomip import GeometricSIA
     geo = GeometricSIA(manager)
     geo.sia_preparar_subsistema(condicion, alcance, mecanismo, tpm)
     return geo.sia_subsistema

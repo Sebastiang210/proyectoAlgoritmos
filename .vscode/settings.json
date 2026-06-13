@@ -4,6 +4,7 @@
        // "**/*.venv": true,
         // "**/*.ipynb": true,
         "**/template": true,
+        // "**/.trash": true,
         "**/__pycache__": true,
         "**/__init__.py": true,
         // TEMPLATE

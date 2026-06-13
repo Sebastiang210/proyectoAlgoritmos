@@ -130,7 +130,7 @@ KQNodes(tpm: np.ndarray, k: int = 2, k_tope: int = 8, presupuesto: int = 10_000)
 # TV-02: KGeoMIP k=2 == GeometricSIA
 uv run python -c "
 from src.controllers.manager import Manager
-from src.controllers.strategies.geometric import GeometricSIA
+from src.controllers.strategies.geomip import GeometricSIA
 from src.controllers.strategies.kgeomip import KGeoMIP
 import numpy as np
 
