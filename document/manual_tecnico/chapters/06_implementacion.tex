@@ -1,0 +1,92 @@
+% ── CAPÍTULO 6: DETALLES DE IMPLEMENTACIÓN ──────────────────
+\section{Detalles de Implementación}
+\label{sec:implementacion}
+
+\subsection{Métodos Principales de KGeoMIP}
+
+\begin{description}[leftmargin=0pt, style=nextline]
+    \item[\texttt{ejecutar\_k(k: int) -> Solution}]
+        Punto de entrada principal. Para $k=2$, delega directamente a GeoMIP (garantiza consistencia TV-02). Para $k>2$, invoca \texttt{find\_kmip()}.
+
+    \item[\texttt{find\_kmip() -> list[list[Vertice]]}]
+        Orquesta la generación de candidatas y su evaluación. Retorna la $k$-partición con menor EMD registrado en \texttt{memoria\_kparticiones}.
+
+    \item[\texttt{generar\_k\_particiones\_candidatas(k)}]
+        Selecciona modo exacto u heurístico. Modo exacto: (i)~separación por combinaciones de futuros, (ii)~niveles Hamming, (iii)~enumeración exhaustiva si $\Stirling{n_v}{k} \leq B$. Modo heurístico: solo (i) y (ii).
+
+    \item[\texttt{\_evaluar\_k\_particion(particion) -> None}]
+        Calcula EMD y guarda en \texttt{memoria\_kparticiones}. Para $k=2$: \texttt{bipartir().distribucion\_marginal()}; para $k>2$: \texttt{np.mean(dists\_por\_grupo)}.
+\end{description}
+
+\subsection{Métodos Principales de KQNodes}
+
+\begin{description}[leftmargin=0pt, style=nextline]
+    \item[\texttt{resolver() -> Solution}]
+        Prepara el oráculo Zeta, selecciona modo y retorna \texttt{Solution} con pérdida y partición formateada.
+
+    \item[\texttt{\_exhaustive\_k\_partition(vertices, k) -> list[list]}]
+        Itera sobre el generador \texttt{\_generar\_particiones()} que produce las $\Stirling{n}{k}$ particiones mediante backtracking recursivo.
+
+    \item[\texttt{\_greedy\_k\_partition(vertices, k) -> list[list]}]
+        Ejecuta $k-1$ iteraciones del MAO base, aislando el mejor corte en cada paso.
+
+    \item[\texttt{\_compute\_partition\_loss(particion) -> float}]
+        $\delta_k(\Pi) = \EMD(\bar{p}^\Pi, p_\text{original})$ donde $\bar{p}^\Pi = \frac{1}{k}\sum_i p(S_i)$.
+
+    \item[\texttt{\_extraer\_indices(grupo) -> (NDArray, NDArray)}]
+        Separa vértices de un grupo en índices futuros (EFECTO) y presentes (ACTUAL).
+\end{description}
+
+\subsection{Dependencias Externas}
+
+\begin{table}[H]
+    \centering
+    \caption{Dependencias del proyecto K-QGMIP con su versión y uso.}
+    \label{tab:deps}
+    \begin{tabular}{lll}
+        \toprule
+        \textbf{Biblioteca} & \textbf{Versión} & \textbf{Uso principal} \\
+        \midrule
+        numpy        & $\geq 2.0$ & Operaciones matriciales, N-Cubos, EMD \\
+        plotly       & $\geq 6.0$ & Dashboard de resultados (HTML interactivo) \\
+        pandas       & $\geq 2.0$ & Lectura/escritura de resultados CSV \\
+        colorama     & $\geq 0.4$ & Colores en salida de terminal \\
+        pyinstrument & $\geq 5.0$ & Profiling de rendimiento \\
+        pyttsx3      & $\geq 2.99$ & Síntesis de voz (anuncio de resultados) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Tests y Validación}
+
+\begin{description}[leftmargin=0pt, style=nextline]
+    \item[\textbf{TV-02 (KGeoMIP $k=2 \equiv$ GeoMIP):}]
+        Verifica que \texttt{KGeoMIP(sub, k=2).ejecutar\_k(2).perdida} $\approx$ \texttt{GeoMIP(sub).resolver().perdida} con tolerancia $< 10^{-6}$. Implementado en \texttt{src/shared/run/kgeomip.py}.
+
+    \item[\textbf{TV-03 (KQNodes $k=2 \equiv$ QNodes):}]
+        KQNodes con $k=2$ produce los mismos candidatos que el pre-pass de singletons de QNodes. Documentado en \texttt{kqnodes.py}.
+
+    \item[\textbf{Tests de integración:}]
+        \texttt{tests/test\_qnodes\_vs\_phi.py} compara QNodes contra pyphi para un conjunto de casos fijos. Las diferencias esperadas están documentadas (pyphi usa EMD sobre repertorios completos, no marginales).
+\end{description}
+
+\subsection{Manejo de Errores}
+
+\begin{itemize}[itemsep=4pt]
+    \item \textbf{Subsistema vacío:} Si \texttt{indices} o \texttt{dims} están vacíos, se retorna \texttt{Solution} con \texttt{perdida=0} inmediatamente.
+    \item \textbf{Excepciones en \texttt{bipartir()}:} Capturadas silenciosamente en el bucle de evaluación; el grupo contribuye con distribución cero.
+    \item \textbf{Modo heurístico:} Registrado en el logger con nivel \texttt{CRITIC} para trazabilidad y auditoría.
+\end{itemize}
+
+\subsection{Uso de Inteligencia Artificial Generativa}
+
+Durante el desarrollo se utilizaron \textbf{Claude} (Anthropic) y \textbf{GitHub Copilot} en:
+
+\begin{itemize}[itemsep=4pt]
+    \item \textbf{Diseño algorítmico:} Consultas sobre la formulación de la función de pérdida para $k > 2$ y cómo extender el oráculo Zeta al contexto de $k$-particiones.
+    \item \textbf{Implementación:} Sugerencias para el generador recursivo \texttt{\_generar\_particiones()} y la optimización del promedio de distribuciones marginales con NumPy vectorizado.
+    \item \textbf{Debugging:} Identificación de errores de indexación en la representación de vértices (ACTUAL/EFECTO).
+    \item \textbf{Documentación:} Asistencia en la redacción de docstrings y de este manual técnico.
+\end{itemize}
+
+\textit{Reflexión:} La IA aceleró la prototipación pero requirió supervisión constante para respetar las convenciones del proyecto (notación little-endian, estructura de N-Cubos). Toda decisión algorítmica relevante fue verificada contra la teoría IIT.

@@ -1,0 +1,86 @@
+% ── CAPÍTULO 2: REQUISITOS DEL SISTEMA ──────────────────────
+\section{Requisitos del Sistema}
+\label{sec:requisitos}
+
+\subsection{Sistema Operativo}
+
+\begin{table}[H]
+    \centering
+    \caption{Compatibilidad de sistemas operativos.}
+    \begin{tabular}{lll}
+        \toprule
+        \textbf{Sistema} & \textbf{Versión mínima} & \textbf{Estado} \\
+        \midrule
+        Windows & 10 / 11 (64-bit) & Verificado \\
+        Linux   & Ubuntu 20.04+ o equivalente & Compatible \\
+        macOS   & 12 Monterey + & Compatible (sin síntesis de voz) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Python}
+
+Se requiere \textbf{Python 3.10 o superior} (se recomienda 3.12).
+
+\begin{lstlisting}[style=shell, caption={Verificar versión de Python.}]
+python --version
+# Se espera: Python 3.10.x o superior
+\end{lstlisting}
+
+\begin{aviso}
+Python 3.9 o inferior no es compatible. Algunas características de tipado estático (\lstinline|X | Y| syntax) requieren Python 3.10+.
+\end{aviso}
+
+\subsection{Hardware Recomendado}
+
+\begin{table}[H]
+    \centering
+    \caption{Recursos de hardware recomendados según el tamaño de la red analizada.}
+    \begin{tabular}{llll}
+        \toprule
+        \textbf{Caso de uso} & \textbf{CPU} & \textbf{RAM} & \textbf{Disco} \\
+        \midrule
+        Redes pequeñas ($n \leq 10$)  & 2 núcleos & 4 GB  & 500 MB \\
+        Redes medianas ($n \leq 15$)  & 4 núcleos & 8 GB  & 1 GB   \\
+        Redes grandes ($n \geq 20$)   & 8 núcleos & 16 GB & 5 GB   \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{peligro}
+Las redes con $n \geq 20$ y $k = 5$ en modo exhaustivo requieren hasta 16~GB de RAM. Si el sistema no dispone de suficiente memoria, el proceso puede ser terminado por el sistema operativo.
+\end{peligro}
+
+\subsection{Dependencias de Python}
+
+Las siguientes bibliotecas se instalan automáticamente al ejecutar la instalación:
+
+\begin{table}[H]
+    \centering
+    \caption{Dependencias requeridas.}
+    \begin{tabular}{lll}
+        \toprule
+        \textbf{Biblioteca} & \textbf{Versión mínima} & \textbf{Propósito} \\
+        \midrule
+        numpy        & 2.0.0  & Operaciones matriciales, hipercubos \\
+        plotly       & 6.0.0  & Dashboard interactivo HTML \\
+        pandas       & 2.0.0  & Lectura y escritura de CSV \\
+        colorama     & 0.4.6  & Salida de terminal con colores \\
+        pyinstrument & 5.0.0  & Profiling de rendimiento \\
+        pyttsx3      & 2.99   & Síntesis de voz (Windows) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{nota}
+El módulo \lstinline|pyttsx3| es opcional en Linux/macOS. Si no está disponible, el software funciona normalmente pero sin el anuncio de voz al finalizar.
+\end{nota}
+
+\subsection{Herramienta de Gestión de Paquetes}
+
+Se soportan dos métodos de instalación:
+
+\begin{itemize}[itemsep=4pt]
+    \item \textbf{pip}: gestor de paquetes estándar de Python.
+    \item \textbf{uv}: gestor moderno y rápido (recomendado). Ver \url{https://docs.astral.sh/uv/}.
+\end{itemize}

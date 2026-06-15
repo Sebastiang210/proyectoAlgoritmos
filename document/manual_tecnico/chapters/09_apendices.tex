@@ -1,0 +1,106 @@
+% ── CAPÍTULO 9: APÉNDICES ────────────────────────────────────
+\appendix
+
+\section{Demostración: Consistencia para $k=2$}
+\label{ap:consistencia}
+
+\begin{proposition}
+    Sea $\Pi = \{S_1, S_2\}$ una bi-partición de $V$. Entonces la pérdida $\delta_2(\Pi)$ calculada por KGeoMIP o KQNodes es idéntica a la pérdida calculada por GeoMIP o QNodes respectivamente.
+\end{proposition}
+
+\begin{proof}
+    Para $k=2$ el camino de código en KGeoMIP delega directamente a \texttt{GeoMIP.find\_mip()} sin modificación (línea del \texttt{if k == 2} en \texttt{ejecutar\_k()}). En KQNodes, el modo exhaustivo con $k=2$ genera las mismas bi-particiones que el pre-pass de singletons del MAO base. La función \texttt{\_compute\_partition\_loss} con dos grupos produce $\EMD(\text{bipartir}(S_1, S_2)\text{.distribucion\_marginal()},\, p_\text{orig})$, que es exactamente \texttt{funcion\_submodular} de QNodes para los mismos índices. $\qed$
+\end{proof}
+
+\section{Tablas de Resultados Completas}
+\label{ap:tablas}
+
+\subsection{Red N5B — Todas las Estrategias}
+
+\begin{table}[H]
+    \centering
+    \caption{Resultados completos para la red N5B.}
+    \label{tab:n5b_full}
+    \begin{tabular}{llrrl}
+        \toprule
+        \textbf{Estrategia} & \textbf{Modo} & \textbf{Pérdida} & \textbf{Tiempo (s)} & \textbf{Partición} \\
+        \midrule
+        GeoMIP        & ---     & $0.2140$ & $0.008$ & $\{A,B\}|\{C,D,E\}$ \\
+        KGeoMIP($k=2$)& Exacto  & $0.2140$ & $0.009$ & $\{A,B\}|\{C,D,E\}$ \\
+        KGeoMIP($k=3$)& Exacto  & $0.1180$ & $0.021$ & $\{A\}|\{B,C\}|\{D,E\}$ \\
+        KGeoMIP($k=4$)& Exacto  & $0.0720$ & $0.041$ & $\{A\}|\{B\}|\{C\}|\{D,E\}$ \\
+        KGeoMIP($k=5$)& Exacto  & $0.0430$ & $0.068$ & $\{A\}|\{B\}|\{C\}|\{D\}|\{E\}$ \\
+        QNodes        & ---     & $0.2010$ & $0.007$ & $\{A,B\}|\{C,D,E\}$ \\
+        KQNodes($k=2$)& Exacto  & $0.2010$ & $0.008$ & $\{A,B\}|\{C,D,E\}$ \\
+        KQNodes($k=3$)& Exacto  & $0.1100$ & $0.029$ & $\{A\}|\{B,C\}|\{D,E\}$ \\
+        KQNodes($k=4$)& Exacto  & $0.0650$ & $0.063$ & $\{A\}|\{B\}|\{C,D\}|\{E\}$ \\
+        KQNodes($k=5$)& Exacto  & $0.0380$ & $0.101$ & $\{A\}|\{B\}|\{C\}|\{D\}|\{E\}$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Tabla de Números de Stirling}
+
+\begin{table}[H]
+    \centering
+    \caption{Valores de $\Stirling{n}{k}$. Los valores en \textcolor{red}{rojo} superan el umbral $B=10{,}000$.}
+    \label{tab:stirling_full}
+    \begin{tabular}{rrrrrr}
+        \toprule
+        $n$ & $k=2$ & $k=3$ & $k=4$ & $k=5$ & $k=n$ \\
+        \midrule
+        4  & 7          & 6           & 1              & ---       & 1 \\
+        5  & 15         & 25          & 10             & 1         & 1 \\
+        6  & 31         & 90          & 65             & 15        & 1 \\
+        8  & 127        & 966         & 1{,}701        & 1{,}050   & 1 \\
+        10 & 511        & 9{,}330     & \textcolor{red}{34{,}105}  & \textcolor{red}{55{,}980}  & 1 \\
+        12 & 2{,}047    & \textcolor{red}{86{,}526}     & \textcolor{red}{$\sim 10^6$} & \textcolor{red}{$>10^6$}   & 1 \\
+        15 & \textcolor{red}{16{,}383} & \textcolor{red}{$\sim 2\times10^6$} & \textcolor{red}{$>10^7$} & \textcolor{red}{$>10^8$} & 1 \\
+        20 & \textcolor{red}{524{,}287} & \textcolor{red}{$>10^8$} & \textcolor{red}{$>10^{11}$} & \textcolor{red}{$>10^{14}$} & 1 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Pseudocódigo Auxiliar: Generador de k-Particiones}
+\label{ap:generar}
+
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\KwIn{Elementos $E$, número de grupos $k$, grupos actuales $g$}
+\KwOut{Generador de $k$-particiones}
+\BlankLine
+\Si{$|E| = 0$ \textbf{y} $|g| = k$}{
+    \textbf{yield} $g$\;
+    \KwRet
+}
+\Si{$|E| = 0$ \textbf{o} $|g| > k$}{
+    \KwRet \tcp*{poda}
+}
+\Para{$i \leftarrow 0$ \textbf{hasta} $\min(k, |g|+1) - 1$}{
+    \eSi{$i < |g|$}{
+        $g' \leftarrow g$ con $E[0]$ añadido al grupo $i$\;
+    }{
+        $g' \leftarrow g$ con nuevo grupo $\{E[0]\}$\;
+    }
+    \Para{\textbf{cada} $\Pi \in$ generar\_particiones($E[1:]$, $k$, $g'$)}{
+        \textbf{yield} $\Pi$\;
+    }
+}
+\caption{\_generar\_particiones: backtracking recursivo para $\Stirling{n}{k}$ particiones.}
+\label{alg:generar}
+\end{algorithm}
+
+\section{Glosario de Términos}
+\label{ap:glosario}
+
+\begin{description}[leftmargin=2.5cm, style=nextline]
+    \item[\textbf{EMD}] \textit{Earth Mover's Distance}. Métrica de distancia entre distribuciones de probabilidad, equivalente a la norma $L_1$ entre sus marginales.
+    \item[\textbf{IIT}] \textit{Teoría de la Información Integrada}. Marco matemático para cuantificar la conciencia mediante $\Phi$.
+    \item[\textbf{MAO}] \textit{Maximum Adjacency Ordering}. Heurística voraz para minimizar funciones submodulares sobre grafos.
+    \item[\textbf{MIP}] \textit{Minimum Information Partition}. La partición del sistema que minimiza la pérdida de información al reconstruir la dinámica conjunta desde las partes.
+    \item[\textbf{N-Cubo}] Representación del espacio de estados $\{0,1\}^n$ como hipercubo $n$-dimensional. Cada nodo del sistema tiene un N-Cubo con su TPM.
+    \item[\textbf{Stirling}] Número $\Stirling{n}{k}$: cantidad de formas de particionar $n$ elementos en exactamente $k$ grupos no vacíos.
+    \item[\textbf{TPM}] \textit{Transition Probability Matrix}. Matriz de probabilidades de transición del sistema entre estados consecutivos.
+    \item[\textbf{$\Phi$}] Medida de información integrada. Un sistema es consciente en la medida en que $\Phi > 0$.
+    \item[\textbf{Zeta oracle}] Estructura que precomputa la transformada Zeta sobre $\delta = H - p$ permitiendo consultas $\bigO{1}$ amortizado al oráculo de QNodes.
+\end{description}

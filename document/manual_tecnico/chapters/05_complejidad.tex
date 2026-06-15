@@ -1,0 +1,70 @@
+% ── CAPÍTULO 5: ANÁLISIS DE COMPLEJIDAD ─────────────────────
+\section{Análisis de Complejidad}
+\label{sec:complejidad}
+
+\subsection{Complejidad Temporal}
+
+Sea $n$ el número de variables, $N = 2^n$ el número de estados, y $D$ la dimensión del subsistema analizado ($D \leq n$). La Tabla~\ref{tab:complejidad} resume la complejidad temporal de cada algoritmo.
+
+\begin{table}[H]
+    \centering
+    \caption{Complejidad temporal de los algoritmos implementados.}
+    \label{tab:complejidad}
+    \begin{tabular}{lllp{4.2cm}}
+        \toprule
+        \textbf{Algoritmo} & \textbf{Precómputo} & \textbf{Búsqueda} & \textbf{Observaciones} \\
+        \midrule
+        BruteForce           & $\bigO{1}$          & $\bigO{2^{m+n}\cdot n}$         & Baseline; inviable $n>15$ \\
+        GeoMIP               & $\bigO{D \cdot N}$  & $\bigO{D^2}$                    & Tabla Hamming + candidatos \\
+        KGeoMIP (exacto)     & $\bigO{D \cdot N}$  & $\bigO{\Stirling{D}{k}\cdot D^2}$ & Enumera candidatos \\
+        KGeoMIP (heurístico) & $\bigO{D \cdot N}$  & $\bigO{C \cdot D^2}$            & $C \ll \Stirling{D}{k}$ \\
+        QNodes               & $\bigO{D \cdot N}$  & $\bigO{D^3 \cdot N}$            & Oráculo Zeta + MAO \\
+        KQNodes (exacto)     & $\bigO{D \cdot N}$  & $\bigO{\Stirling{D}{k}\cdot D}$ & Enumera y evalúa \\
+        KQNodes (greedy)     & $\bigO{D \cdot N}$  & $\bigO{k \cdot D^3 \cdot N}$   & $k-1$ iteraciones MAO \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsubsection{Análisis del Precómputo}
+
+Tanto el oráculo Zeta (QNodes) como la tabla de costos (GeoMIP) tienen costo $\bigO{D \cdot N}$ en la práctica, dominado por el recorrido de los $2^D$ estados del hipercubo. Para $D = 20$, esto implica $\sim 2\times10^7$ operaciones flotantes, manejable en hardware moderno.
+
+\subsubsection{Análisis de la Búsqueda}
+
+Para KQNodes en modo exhaustivo, la complejidad es $\bigO{\Stirling{n}{k}}$ evaluaciones. El umbral $B = 10{,}000$ garantiza viabilidad computacional (ver Tabla~\ref{tab:stirling} en la sección de Fundamentos). En modo greedy, la complejidad es $\bigO{k \cdot D^3 \cdot N}$, lineal en $k$.
+
+\subsection{Complejidad Espacial}
+
+\begin{itemize}[itemsep=4pt]
+    \item \textbf{Sistema y N-Cubos:} $\bigO{n \cdot 2^n}$ para las $n$ matrices de transición.
+    \item \textbf{Oráculo Zeta (KQNodes):} $\bigO{N \cdot 2^D}$ para la matriz de sumas de cara.
+    \item \textbf{Tabla de costos (KGeoMIP):} $\bigO{2^{2n}}$ en el peor caso (todos los pares de estados).
+    \item \textbf{Memoria de particiones:} $\bigO{\Stirling{n}{k}}$ en modo exacto.
+\end{itemize}
+
+\subsection{Análisis de Casos}
+
+\begin{description}[leftmargin=0pt, style=nextline]
+    \item[\textbf{Mejor caso:}] Sistema con $n$ pequeño ($\leq 10$) y $k = 2$. Ambas estrategias operan en tiempo cercano a $\bigO{n^3}$ (MAO base / tabla Hamming sin heurísticas adicionales).
+
+    \item[\textbf{Peor caso:}] Sistema con $n$ grande ($\geq 20$) y $k = 5$. KQNodes entra en modo greedy ($\bigO{k \cdot D^3 \cdot N}$); KGeoMIP genera muchas candidatas geométricas antes de podar.
+\end{description}
+
+\subsection{Comparación con Alternativas}
+
+\begin{table}[H]
+    \centering
+    \caption{Comparación de complejidad y tiempo estimado para $n=20$, $k=3$.}
+    \label{tab:comp_alternativas}
+    \begin{tabular}{lllr}
+        \toprule
+        \textbf{Método} & \textbf{Exacto} & \textbf{Complejidad total} & \textbf{Tiempo est.} \\
+        \midrule
+        Búsqueda exhaustiva & Sí   & $\bigO{2^{m+n} \cdot n}$           & inviable \\
+        GeoMIP ($k=2$)      & Heur.& $\bigO{D \cdot N + D^2}$           & $< 0.5\,$s \\
+        QNodes ($k=2$)      & Heur.& $\bigO{D \cdot N + D^3 N}$         & $< 2\,$s \\
+        KGeoMIP ($k=3$)     & Heur.& $\bigO{D \cdot N + C \cdot D^2}$   & $\sim 1\,$s \\
+        KQNodes ($k=3$)     & Heur.& $\bigO{D \cdot N + k \cdot D^3 N}$ & $\sim 3\,$s \\
+        \bottomrule
+    \end{tabular}
+\end{table}

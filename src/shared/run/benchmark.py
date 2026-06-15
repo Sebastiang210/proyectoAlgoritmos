@@ -32,6 +32,7 @@ NETWORK_CONFIGS = {
     "N10A": {"n": 10, "tpm": "N10A.csv"},
     "N10B": {"n": 10, "tpm": "N10B.csv"},
     "N15A": {"n": 15, "tpm": "N15A.csv"},
+    "N15B": {"n": 15, "tpm": "N15B.csv"},
     "N20A": {"n": 20, "tpm": "N20A.csv"},
     "N21A": {"n": 21, "tpm": "N21A.csv"},
     "N22A": {"n": 22, "tpm": "N22A.csv"},

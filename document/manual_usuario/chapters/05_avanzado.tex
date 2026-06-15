@@ -1,0 +1,104 @@
+% ── CAPÍTULO 5: PARÁMETROS AVANZADOS ────────────────────────
+\section{Parámetros Avanzados}
+\label{sec:avanzado}
+
+\subsection{Parámetro k: Número de Grupos}
+
+El parámetro $k$ controla cuántos grupos tendrá la partición:
+
+\begin{table}[H]
+    \centering
+    \caption{Efecto del parámetro $k$ sobre los resultados.}
+    \begin{tabular}{rll}
+        \toprule
+        \textbf{k} & \textbf{Significado} & \textbf{Pérdida típica} \\
+        \midrule
+        2 & Dos grupos (bi-partición) & Mayor \\
+        3 & Tres grupos              & Intermedia \\
+        4 & Cuatro grupos            & Menor \\
+        5 & Cinco grupos             & Mínima \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Para ejecutar solo una estrategia con un $k$ específico, modifique \lstinline|benchmark.py| o llame directamente a la estrategia:
+
+\begin{lstlisting}[style=python, caption={Uso directo de KGeoMIP con k=3.}]
+from src.strategies.GeoMIP.kgeomip import KGeoMIP
+from src.models.core.system import System
+
+# Construir el sistema desde CSV
+sistema = System.desde_csv("src/shared/input/N5B.csv")
+
+# Preparar subsistema y ejecutar k=3
+estrategia = KGeoMIP(sistema)
+resultado = estrategia.ejecutar_k(k=3)
+
+print(f"Perdida: {resultado.perdida:.4f}")
+print(f"Particion: {resultado.particion}")
+\end{lstlisting}
+
+\subsection{Presupuesto: Umbral Exacto/Heurístico}
+
+El parámetro \texttt{presupuesto} (por defecto 10\,000) determina cuándo se activa el modo heurístico:
+
+\begin{itemize}[itemsep=4pt]
+    \item Si el número de $k$-particiones posibles ($S(n,k)$) es $\leq$ \texttt{presupuesto}: modo \textbf{exacto}.
+    \item Si $S(n,k) >$ \texttt{presupuesto}: modo \textbf{heurístico} (más rápido, no garantiza óptimo).
+\end{itemize}
+
+\begin{lstlisting}[style=python, caption={Cambiar el presupuesto para forzar modo exacto.}]
+# Forzar modo exacto con presupuesto mayor
+estrategia = KQNodes(sistema, k=3, presupuesto=100_000)
+\end{lstlisting}
+
+\begin{aviso}
+Aumentar el presupuesto puede causar tiempos de ejecución muy largos para redes medianas ($n \geq 15$) con $k \geq 3$. Consulte la Tabla de Números de Stirling en el Apéndice del Manual Técnico antes de modificar este valor.
+\end{aviso}
+
+\subsection{Modo Exacto vs. Heurístico}
+
+\begin{table}[H]
+    \centering
+    \caption{Comparación entre modos de búsqueda.}
+    \begin{tabular}{lllll}
+        \toprule
+        \textbf{Modo} & \textbf{Garantía} & \textbf{Velocidad} & \textbf{Recomendado para} \\
+        \midrule
+        Exacto      & Óptimo global & Lento (exponencial)   & $n \leq 10$, $k \leq 3$ \\
+        Heurístico  & Aproximado    & Rápido (polinomial)   & $n \geq 15$ o $k \geq 4$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Selección de Estrategia}
+
+Para ejecutar solo KQNodes y no KGeoMIP, edite la lista de estrategias en \lstinline|benchmark.py|:
+
+\begin{lstlisting}[style=python, caption={Ejecutar solo KQNodes en benchmark.}]
+# En benchmark.py, modifique la lista ESTRATEGIAS:
+ESTRATEGIAS = [
+    ("KQNodes_k2", KQNodes, {"k": 2}),
+    ("KQNodes_k3", KQNodes, {"k": 3}),
+    ("KQNodes_k4", KQNodes, {"k": 4}),
+    ("KQNodes_k5", KQNodes, {"k": 5}),
+]
+\end{lstlisting}
+
+\subsection{Formatos de Salida Disponibles}
+
+Actualmente el sistema produce:
+\begin{itemize}[itemsep=4pt]
+    \item \textbf{CSV}: \lstinline|src/shared/output/{RED}/{ESTRATEGIA}.csv| — un archivo por estrategia.
+    \item \textbf{HTML}: \lstinline|dashboard.html| — dashboard interactivo Plotly.
+    \item \textbf{Terminal}: resumen en color con tiempos y pérdidas al finalizar cada ejecución.
+\end{itemize}
+
+\begin{tip}
+Para análisis posteriores en Python, cargue los CSV con pandas:
+\begin{lstlisting}[style=python]
+import pandas as pd
+df = pd.read_csv("src/shared/output/N10A/KGeoMIP_k3.csv")
+print(df.describe())
+\end{lstlisting}
+\end{tip}

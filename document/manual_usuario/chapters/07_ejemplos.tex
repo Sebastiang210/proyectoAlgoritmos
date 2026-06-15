@@ -1,0 +1,110 @@
+% ── CAPÍTULO 7: EJEMPLOS Y TUTORIALES ───────────────────────
+\section{Ejemplos y Tutoriales}
+\label{sec:ejemplos}
+
+\subsection{Ejemplo 1: Red N5B con k=3 (Básico)}
+
+Este tutorial muestra cómo analizar la red de 5 nodos N5B con una 3-partición.
+
+\textbf{Paso 1 — Verificar el archivo de entrada:}
+
+\begin{lstlisting}[style=shell]
+# Verificar que el CSV existe
+ls src/shared/input/N5B.csv
+# Debe mostrar el archivo (32 filas de datos + encabezado)
+\end{lstlisting}
+
+\textbf{Paso 2 — Ejecutar KGeoMIP con k=3:}
+
+\begin{lstlisting}[style=python, caption={Ejecutar KGeoMIP sobre N5B con 3 grupos.}]
+# Desde la raiz del proyecto:
+from src.strategies.GeoMIP.kgeomip import KGeoMIP
+from src.models.core.system import System
+
+sistema = System.desde_csv("src/shared/input/N5B.csv")
+kgeo = KGeoMIP(sistema)
+resultado = kgeo.ejecutar_k(k=3)
+
+print(f"Perdida (EMD): {resultado.perdida:.4f}")
+print(f"Particion: {resultado.particion}")
+print(f"Tiempo: {resultado.tiempo:.3f} s")
+\end{lstlisting}
+
+\textbf{Salida esperada:}
+
+\begin{lstlisting}[caption={Salida del ejemplo 1.}]
+Perdida (EMD): 0.1180
+Particion: [[(1,0)], [(1,1),(0,0)], [(1,2),(0,1),(0,2)]]
+Tiempo: 0.021 s
+\end{lstlisting}
+
+\textbf{Interpretación:} La 3-partición divide los 5 nodos en tres grupos. La pérdida de 0.118 es aproximadamente la mitad que la bi-partición (0.214), lo que indica que los tres grupos explican mejor la dinámica del sistema de forma independiente.
+
+\subsection{Ejemplo 2: Red N10A con k=4 (Intermedio)}
+
+\textbf{Paso 1 — Ejecutar el benchmark selectivo:}
+
+\begin{lstlisting}[style=python, caption={Benchmark selectivo para N10A.}]
+import time
+from src.strategies.QNodes.kqnodes import KQNodes
+from src.models.core.system import System
+
+sistema = System.desde_csv("src/shared/input/N10A.csv")
+kqn = KQNodes(sistema, k=4)
+
+inicio = time.time()
+resultado = kqn.resolver()
+fin = time.time()
+
+print(f"Modo: {'exacto' if resultado.modo == 'exacto' else 'greedy'}")
+print(f"Perdida: {resultado.perdida:.4f}")
+print(f"Tiempo total: {fin - inicio:.2f} s")
+\end{lstlisting}
+
+\textbf{Resultado esperado:} El sistema reportará modo \textit{greedy} (porque $S(10,4) = 34{,}105 > 10{,}000$) con una pérdida aproximada de 0.148.
+
+\subsection{Ejemplo 3: Comparar GeoMIP vs KGeoMIP}
+
+\begin{lstlisting}[style=python, caption={Comparación directa entre GeoMIP y KGeoMIP(k=2).}]
+from src.strategies.GeoMIP.geomip  import GeoMIP
+from src.strategies.GeoMIP.kgeomip import KGeoMIP
+from src.models.core.system import System
+
+sistema = System.desde_csv("src/shared/input/N5B.csv")
+
+geo  = GeoMIP(sistema)
+kgeo = KGeoMIP(sistema)
+
+r_geo  = geo.resolver()
+r_kgeo = kgeo.ejecutar_k(k=2)
+
+dif = abs(r_geo.perdida - r_kgeo.perdida)
+print(f"GeoMIP  loss: {r_geo.perdida:.6f}")
+print(f"KGeoMIP loss: {r_kgeo.perdida:.6f}")
+print(f"Diferencia:   {dif:.2e}  ({'OK' if dif < 1e-5 else 'FALLO'})")
+\end{lstlisting}
+
+La diferencia debe ser menor que $10^{-5}$, validando TV-02.
+
+\subsection{Ejemplo 4: Ejecutar el Benchmark Completo y Generar Dashboard}
+
+\begin{lstlisting}[style=shell, caption={Flujo completo: benchmark + dashboard.}]
+# Ejecutar todas las estrategias
+python src/shared/run/benchmark.py
+
+# Generar el dashboard interactivo
+python src/shared/run/dashboard.py
+
+# Abrir el dashboard (Windows)
+start dashboard.html
+
+# Abrir el dashboard (Linux)
+xdg-open dashboard.html
+
+# Abrir el dashboard (macOS)
+open dashboard.html
+\end{lstlisting}
+
+\begin{tip}
+El dashboard permite hacer zoom, exportar gráficas como PNG y comparar estrategias de forma interactiva. Use la barra de herramientas de Plotly en la esquina superior derecha de cada gráfica.
+\end{tip}

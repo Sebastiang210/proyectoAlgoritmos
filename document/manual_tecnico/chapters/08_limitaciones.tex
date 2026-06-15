@@ -1,0 +1,57 @@
+% ── CAPÍTULO 8: LIMITACIONES Y TRABAJO FUTURO ───────────────
+\section{Limitaciones y Trabajo Futuro}
+\label{sec:limitaciones}
+
+\subsection{Limitaciones Actuales}
+
+\begin{description}[leftmargin=0pt, style=nextline]
+    \item[\textbf{Modo heurístico no garantiza optimalidad.}]
+        Cuando $\Stirling{n}{k} > 10{,}000$, ambas estrategias recorren solo un subconjunto de $k$-particiones candidatas. En redes con alta simetría, la heurística puede perder la partición óptima.
+
+    \item[\textbf{Escalabilidad de KQNodes greedy.}]
+        El modo greedy ejecuta $k-1$ iteraciones completas del MAO. Para $k=5$ y $n=22$, el tiempo supera los 150~s, lo que puede resultar prohibitivo para exploraciones interactivas.
+
+    \item[\textbf{Función de pérdida promediada.}]
+        La extensión $\bar{p}^\Pi = \frac{1}{k}\sum_i p(S_i)$ asume que todos los grupos tienen igual peso. Una versión ponderada podría ser más fiel a la teoría IIT original \cite{oizumi2014}.
+
+    \item[\textbf{Restricción a sistemas binarios.}]
+        La representación N-Cubo asume variables binarias. Sistemas multi-valorados (ternarios o continuos) requerirían una refactorización profunda de las estructuras de datos.
+
+    \item[\textbf{Definición de EMD.}]
+        La implementación utiliza la norma $L_1$ sobre distribuciones marginales unidimensionales, no la EMD bidimensional o Wasserstein-2. Esto difiere parcialmente de pyphi, que trabaja sobre repertorios completos.
+
+    \item[\textbf{Validación solo para $k=2$.}]
+        TV-02 y TV-03 comparan las extensiones contra las versiones base únicamente en modo $k=2$. No existe un baseline externo para $k \geq 3$.
+
+    \item[\textbf{Soporte de Windows únicamente verificado.}]
+        El módulo \texttt{pyttsx3} para síntesis de voz puede tener comportamientos distintos en macOS/Linux. Las rutas de archivos asumen separadores de Windows en algunos puntos.
+\end{description}
+
+\subsection{Trabajo Futuro}
+
+\begin{enumerate}[label=\textbf{\arabic*.}]
+    \item \textbf{Paralelización del modo exhaustivo.}
+        El generador \texttt{\_generar\_particiones()} es inherentemente serial. Se puede paralelizar con \texttt{multiprocessing.Pool} para explotar múltiples núcleos y escalar a redes de $n \leq 20$ en modo exacto.
+
+    \item \textbf{Poda Branch-and-Bound en KGeoMIP.}
+        Incorporar límites inferiores basados en la geometría del hipercubo para descartar ramas enteras sin evaluación completa.
+
+    \item \textbf{Validación contra pyphi.}
+        Ampliar \texttt{tests/test\_qnodes\_vs\_phi.py} para cubrir casos $k \geq 3$ y documentar las diferencias esperadas entre las implementaciones.
+
+    \item \textbf{Función de pérdida ponderada.}
+        Implementar $\bar{p}^\Pi = \sum_i w_i \cdot p(S_i)$ con pesos proporcionales al tamaño del grupo ($w_i = |S_i|/|V|$) y evaluar su impacto en las métricas de $\Phi$.
+
+    \item \textbf{Interfaz web.}
+        Desarrollar una interfaz Dash/Streamlit para cargar TPM, seleccionar parámetros, ejecutar estrategias y visualizar resultados sin necesidad de línea de comandos.
+
+    \item \textbf{Soporte multi-plataforma.}
+        Eliminar las dependencias de pyttsx3 del núcleo del benchmark y mover la síntesis de voz a un módulo opcional.
+
+    \item \textbf{Exportación a JSON/HDF5.}
+        Agregar formatos de salida estructurados (JSON o HDF5) que preserven metadatos de la partición óptima y permitan análisis post-hoc sin re-ejecutar el benchmark.
+\end{enumerate}
+
+\subsection{Reflexión sobre el Proceso de Desarrollo}
+
+El proyecto K-QGMIP representa un primer paso hacia algoritmos de particionamiento eficientes para IIT con $k > 2$. La principal lección aprendida fue que la calidad de la función de pérdida (definición del promedio de distribuciones marginales) tiene un impacto mayor en los resultados que la sofisticación del algoritmo de búsqueda: una heurística sencilla con una función de pérdida precisa supera a una búsqueda exhaustiva con una pérdida aproximada.

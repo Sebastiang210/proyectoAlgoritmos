@@ -1,0 +1,171 @@
+\documentclass[12pt, letterpaper]{article}
+
+% ── PAQUETES ────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage[top=2.5cm, bottom=2.5cm, left=3cm, right=3cm]{geometry}
+\usepackage{graphicx}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,arrows.meta,positioning,fit,backgrounds}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{setspace}
+
+% ── COLORES ─────────────────────────────────────────────────
+\definecolor{primary}{RGB}{0, 70, 127}
+\definecolor{secondary}{RGB}{0, 120, 190}
+\definecolor{codebg}{RGB}{248, 248, 248}
+\definecolor{codestr}{RGB}{163, 21, 21}
+\definecolor{codekw}{RGB}{0, 0, 200}
+\definecolor{codecomment}{RGB}{63, 127, 95}
+\definecolor{umlclass}{RGB}{230, 240, 255}
+\definecolor{umlabstract}{RGB}{255, 240, 200}
+
+% ── TEOREMAS ────────────────────────────────────────────────
+\newtheorem{definition}{Definición}[section]
+\newtheorem{proposition}{Proposición}[section]
+
+% ── ALGORITMO (palabras en español) ─────────────────────────
+\SetKwInput{KwIn}{Entrada}
+\SetKwInput{KwOut}{Salida}
+\SetKw{KwRet}{retornar}
+\SetKwFor{Para}{para}{hacer}{fin para}
+\SetKwFor{Mientras}{mientras}{hacer}{fin mientras}
+\SetKwIF{Si}{SiNo}{Sino}{si}{entonces}{sino si}{sino}{fin si}
+
+% ── CÓDIGO ──────────────────────────────────────────────────
+\lstset{
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\footnotesize,
+    stringstyle=\color{codestr},
+    keywordstyle=\color{codekw}\bfseries,
+    commentstyle=\color{codecomment}\itshape,
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{gray!40},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    xleftmargin=1.5em,
+    showstringspaces=false,
+    tabsize=4,
+    extendedchars=true,
+}
+
+% ── SECCIONES ───────────────────────────────────────────────
+\titleformat{\section}
+    {\large\bfseries\color{primary}}
+    {\thesection.}{0.5em}{}[\titlerule]
+
+\titleformat{\subsection}
+    {\normalsize\bfseries\color{primary!80}}
+    {\thesubsection.}{0.5em}{}
+
+\titleformat{\subsubsection}
+    {\normalsize\bfseries\color{primary!60}}
+    {\thesubsubsection.}{0.5em}{}
+
+% ── ENCABEZADO / PIE ────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\textcolor{gray}{\small Manual Técnico --- K-QGMIP}}
+\lhead{\textcolor{gray}{\small \leftmark}}
+\rfoot{\textcolor{gray}{\small Página \thepage}}
+\lfoot{\textcolor{gray}{\small Universidad de Caldas --- 2026-1}}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ── HIPERVÍNCULOS ───────────────────────────────────────────
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primary,
+    urlcolor=primary,
+    citecolor=primary,
+    pdftitle={Manual Técnico K-QGMIP},
+    pdfauthor={Equipo K-QGMIP},
+}
+
+% ── COMANDOS MATEMÁTICOS ────────────────────────────────────
+\newcommand{\Stirling}[2]{S(#1,#2)}
+\newcommand{\EMD}{\operatorname{EMD}}
+\newcommand{\dH}{d_H}
+\newcommand{\kMIP}{k\text{-MIP}}
+\newcommand{\kpart}{k\text{-partición}}
+\newcommand{\bigO}[1]{\mathcal{O}(#1)}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+% ── RUTA DE IMÁGENES ────────────────────────────────────────
+\graphicspath{{../compartida/}{./figures/}}
+
+% ────────────────────────────────────────────────────────────
+\begin{document}
+
+% PORTADA
+\begin{titlepage}
+    \centering
+    \vspace*{1cm}
+    \includegraphics[width=5cm]{logoUCALDAS.png}\\[1.5cm]
+    {\small\textcolor{gray}{Facultad de Inteligencia Artificial e Ingenierías}}\\[0.3cm]
+    {\small\textcolor{gray}{Análisis y Diseño de Algoritmos --- 2026-1}}\\[1.5cm]
+    \rule{12cm}{1.5pt}\\[0.5cm]
+    {\Huge\bfseries\color{primary} Manual Técnico\\[0.4cm]}
+    {\Large\bfseries\color{secondary} Proyecto K-QGMIP}\\[0.3cm]
+    {\large Extensión de KGeoMIP y KQNodes a k-Particiones}\\[0.5cm]
+    {\large Juan Sebastián García Hincapíe · ID: SebastianG210}\\[0.4cm]
+    \rule{12cm}{0.5pt}\\[1.5cm]
+    \begin{tabular}{rl}
+        \textbf{Institución:} & Universidad de Caldas \\[4pt]
+        \textbf{Materia:}     & Análisis y Diseño de Algoritmos \\[4pt]
+        \textbf{Versión:}     & 1.0 \\[4pt]
+        \textbf{Fecha:}       & Junio 2026 \\
+    \end{tabular}\\[2cm]
+    \vfill
+    {\small\textcolor{gray}{Documento de uso académico}}
+\end{titlepage}
+
+% TABLA DE CONTENIDOS
+\tableofcontents
+\newpage
+
+% ── CAPÍTULOS ───────────────────────────────────────────────
+\input{chapters/01_resumen}
+\newpage
+\input{chapters/02_fundamentos}
+\newpage
+\input{chapters/03_arquitectura}
+\newpage
+\input{chapters/04_disenio_algoritmico}
+\newpage
+\input{chapters/05_complejidad}
+\newpage
+\input{chapters/06_implementacion}
+\newpage
+\input{chapters/07_resultados}
+\newpage
+\input{chapters/08_limitaciones}
+\newpage
+\input{chapters/09_apendices}
+
+% ── BIBLIOGRAFÍA ────────────────────────────────────────────
+\newpage
+\bibliographystyle{plain}
+\bibliography{bibliography}
+
+\end{document}

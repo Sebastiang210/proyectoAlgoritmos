@@ -1,0 +1,90 @@
+% ── CAPÍTULO 2: FUNDAMENTOS TEÓRICOS ────────────────────────
+\section{Fundamentos Teóricos}
+\label{sec:fundamentos}
+
+\subsection{Teoría de la Información Integrada}
+
+La Teoría de la Información Integrada \cite{tononi2016} proporciona un marco matemático para cuantificar la conciencia en sistemas físicos mediante $\Phi$. Un componente fundamental es el concepto de MIP (\textit{Minimum Information Partition}): la división del sistema que minimiza la pérdida de información al reconstruir la dinámica desde partes independientes.
+
+\subsection{Definición Formal de k-Partición}
+
+Sea $V = \{v_1, v_2, \ldots, v_n\}$ un sistema de $n$ variables binarias con Matriz de Probabilidad de Transición (TPM) $P(V_{t+1} \mid V_t)$.
+
+\begin{definition}[k-Partición]
+Una \textbf{$\kpart$} de $V$ es una familia de subconjuntos no vacíos $\Pi = \{S_1, S_2, \ldots, S_k\}$ tal que:
+\begin{align}
+    S_i \cap S_j &= \emptyset \quad \forall\, i \neq j \label{eq:disjoint}\\
+    S_1 \cup S_2 \cup \cdots \cup S_k &= V \label{eq:cover}\\
+    S_i &\neq \emptyset \quad \forall\, i \in \{1,\ldots,k\} \label{eq:nonempty}
+\end{align}
+\end{definition}
+
+\noindent\textbf{Ejemplo ($n=4$, $k=3$):} Si $V = \{A,B,C,D\}$, la partición $\Pi = \{\{A,B\},\{C\},\{D\}\}$ satisface las condiciones \eqref{eq:disjoint}--\eqref{eq:nonempty}.
+
+\subsection{Función de Pérdida y Earth Mover's Distance}
+
+La pérdida de una $\kpart$ $\Pi = \{S_1,\ldots,S_k\}$ se cuantifica con la \textbf{Earth Mover's Distance} (EMD) entre la distribución original del sistema y la reconstruida desde las partes independientes:
+
+\begin{equation}
+    p_\Pi(V_{t+1}) = \bigotimes_{i=1}^{k} p(S_i^{t+1})
+\end{equation}
+
+La función de pérdida objetivo es:
+\begin{equation}
+    \delta_k(\Pi) = \EMD\!\left(p(V_{t+1}),\, \bigotimes_{i=1}^{k} p(S_i^{t+1})\right)
+    = \sum_{j=1}^{n} \left| p_j^{\text{original}} - \bar{p}_j^{\Pi} \right|
+    \label{eq:loss}
+\end{equation}
+
+donde $\bar{p}_j^{\Pi}$ es el promedio ponderado de las distribuciones marginales por grupo. El \textbf{$k$-MIP} es:
+\begin{equation}
+    \Pi^* = \argmin_{\Pi \in \mathcal{P}(V,k)}\; \delta_k(\Pi)
+    \label{eq:kmip}
+\end{equation}
+
+\subsection{Números de Stirling de Segundo Tipo}
+
+El número de $k$-particiones de $n$ elementos está dado por:
+\begin{equation}
+    \Stirling{n}{k} = \frac{1}{k!} \sum_{j=0}^{k} (-1)^{k-j} \binom{k}{j} j^n
+    \label{eq:stirling}
+\end{equation}
+
+\begin{table}[H]
+    \centering
+    \caption{Valores de $\Stirling{n}{k}$ para diferentes $n$ y $k$.}
+    \label{tab:stirling}
+    \begin{tabular}{rrrrr}
+        \toprule
+        $n$ & $k=2$ & $k=3$ & $k=4$ & $k=5$ \\
+        \midrule
+        5  & 15        & 25          & 10           & 1 \\
+        10 & 511       & 9{,}330     & 34{,}105     & 55{,}980 \\
+        15 & 16{,}383  & 2{,}375{,}101 & $>10^7$  & $>10^8$ \\
+        20 & 524{,}287 & $>10^8$     & $>10^{11}$  & $>10^{14}$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Representación Geométrica: Hipercubo n-dimensional}
+
+El espacio de estados $\{0,1\}^n$ se corresponde con los $2^n$ vértices de un hipercubo $n$-dimensional. La \textbf{distancia de Hamming} es:
+\begin{equation}
+    \dH(s, s') = \sum_{i=1}^{n} |s_i - s'_i|
+\end{equation}
+
+El costo de transición en GeoMIP se define como:
+\begin{equation}
+    c_i(s, s') = \frac{1}{2^{\dH(s,s')}} \left(\left|X_i[s] - X_i[s']\right| + \sum_{v \in \partial^*(s',s)} c_i(s, v)\right)
+    \label{eq:cost}
+\end{equation}
+
+\subsection{Extensión a k-Particiones}
+
+La extensión de GeoMIP y QNodes se fundamenta en tres observaciones:
+
+\begin{enumerate}[label=\textbf{\arabic*.}]
+    \item \textbf{Reutilización de la tabla de costos:} Se calcula una sola vez en $\bigO{n \cdot 2^n}$ y es válida para cualquier $k$.
+    \item \textbf{Generalización de la pérdida:} Para $k > 2$, se usa el promedio de distribuciones marginales (ecuación~\eqref{eq:loss}).
+    \item \textbf{Consistencia para $k=2$:} Las extensiones reproducen exactamente los resultados originales de bi-partición.
+\end{enumerate}

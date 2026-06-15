@@ -1,0 +1,176 @@
+% ============================================================
+%  MANUAL DE USUARIO — K-QGMIP
+%  Universidad de Caldas · Análisis y Diseño de Algoritmos 2026-1
+% ============================================================
+\documentclass[11pt,letterpaper]{article}
+
+% ── Idioma y codificación ────────────────────────────────────
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+% ── Tipografía ───────────────────────────────────────────────
+\usepackage{mathptmx}
+\usepackage[scaled=0.9]{helvet}
+\usepackage{courier}
+
+% ── Geometría y márgenes ─────────────────────────────────────
+\usepackage[top=2.5cm, bottom=2.5cm, left=3cm, right=2.5cm]{geometry}
+
+% ── Colores ──────────────────────────────────────────────────
+\usepackage[dvipsnames,table]{xcolor}
+\definecolor{primary}{RGB}{0,68,130}
+\definecolor{secondary}{RGB}{200,30,30}
+\definecolor{notecolor}{RGB}{0,100,50}
+\definecolor{warncolor}{RGB}{180,80,0}
+\definecolor{tipbg}{RGB}{230,245,255}
+\definecolor{warnbg}{RGB}{255,243,205}
+\definecolor{dangerbg}{RGB}{255,230,230}
+
+% ── Cajas informativas ───────────────────────────────────────
+\usepackage[most]{tcolorbox}
+\tcbset{
+    boxrule=0.6pt, arc=4pt, left=6pt, right=6pt, top=5pt, bottom=5pt,
+    fonttitle=\bfseries\small
+}
+\newtcolorbox{nota}[1][Nota]{
+    colback=tipbg, colframe=primary!60, title=#1
+}
+\newtcolorbox{aviso}[1][Aviso]{
+    colback=warnbg, colframe=warncolor!80, title=#1
+}
+\newtcolorbox{peligro}[1][Importante]{
+    colback=dangerbg, colframe=secondary!80, title=#1
+}
+\newtcolorbox{tip}[1][Consejo]{
+    colback=green!6, colframe=notecolor!60, title=#1
+}
+
+% ── Listas y enumeraciones ───────────────────────────────────
+\usepackage{enumitem}
+
+% ── Tablas ───────────────────────────────────────────────────
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{multirow}
+
+% ── Código fuente ────────────────────────────────────────────
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    breakatwhitespace=true,
+    frame=single,
+    frameround=tttt,
+    rulecolor=\color{gray!50},
+    backgroundcolor=\color{gray!6},
+    keywordstyle=\color{primary}\bfseries,
+    stringstyle=\color{notecolor},
+    commentstyle=\color{gray}\itshape,
+    numberstyle=\tiny\color{gray},
+    numbers=left,
+    numbersep=8pt,
+    showstringspaces=false,
+    captionpos=b,
+    tabsize=4,
+    extendedchars=true,
+}
+\lstdefinestyle{shell}{
+    language=bash,
+    backgroundcolor=\color{black!90},
+    basicstyle=\ttfamily\small\color{white},
+    keywordstyle=\color{yellow},
+    stringstyle=\color{green!70},
+    commentstyle=\color{gray!60},
+    frame=none,
+    numbers=none,
+}
+\lstdefinestyle{python}{
+    language=Python,
+    backgroundcolor=\color{gray!6},
+    keywordstyle=\color{primary}\bfseries,
+    stringstyle=\color{notecolor},
+    commentstyle=\color{gray}\itshape,
+}
+
+% ── Gráficos e imágenes ──────────────────────────────────────
+\usepackage{graphicx}
+\graphicspath{{../compartida/}{./figures/}}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, shapes.geometric, positioning, fit, calc}
+
+% ── Encabezados y pie de página ──────────────────────────────
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{primary}{\textbf{K-QGMIP}} · Manual de Usuario}
+\fancyhead[R]{\small Universidad de Caldas · 2026-1}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.6pt}
+
+% ── Hipervínculos ────────────────────────────────────────────
+\usepackage[colorlinks=true, linkcolor=primary, citecolor=secondary,
+            urlcolor=notecolor, pdftitle={Manual de Usuario - K-QGMIP},
+            pdfauthor={Universidad de Caldas}]{hyperref}
+
+% ── Matemáticas ──────────────────────────────────────────────
+\usepackage{amsmath}
+
+% ── Secciones con color ──────────────────────────────────────
+\usepackage{titlesec}
+\titleformat{\section}{\large\bfseries\color{primary}}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{primary!80}}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{gray!70}}{\thesubsubsection}{0.5em}{}
+
+% ── Espaciado ────────────────────────────────────────────────
+\setlength{\parskip}{5pt}
+\setlength{\parindent}{0pt}
+
+% ============================================================
+\begin{document}
+
+% ── Portada ──────────────────────────────────────────────────
+\begin{titlepage}
+    \centering
+    \vspace*{0.5cm}
+    \includegraphics[width=4cm]{logoUCALDAS}\\[1.2cm]
+    {\Large\bfseries\color{primary} Universidad de Caldas\\[0.3cm]
+     Facultad de Ingeniería\\[0.3cm]
+     Análisis y Diseño de Algoritmos 2026-1}\\[1.5cm]
+    \rule{\linewidth}{2pt}\\[0.5cm]
+    {\Huge\bfseries\color{primary} Manual de Usuario}\\[0.3cm]
+    {\huge\bfseries K-QGMIP}\\[0.2cm]
+    {\large Extensión a $k$-Particiones de GeoMIP y QNodes}\\[0.3cm]
+    \rule{\linewidth}{2pt}\\[1.5cm]
+    {\large\bfseries Integrantes del equipo:}\\[0.6cm]
+    {\large Juan Sebastián García Hincapíe · ID: SebastianG210}\\[0.4cm]
+    {\large\textit{Universidad de Caldas, Manizales, Colombia}}\\[1.5cm]
+    {\large\bfseries Versión 1.0}\\[0.3cm]
+    {\large Junio 2026}
+    \vfill
+    {\small Repositorio: \texttt{github.com/SebastianG210/proyectoAlgoritmos}}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+% ── Capítulos ────────────────────────────────────────────────
+\input{chapters/01_intro}
+\clearpage
+\input{chapters/02_requisitos}
+\clearpage
+\input{chapters/03_instalacion}
+\clearpage
+\input{chapters/04_uso_basico}
+\clearpage
+\input{chapters/05_avanzado}
+\clearpage
+\input{chapters/06_problemas}
+\clearpage
+\input{chapters/07_ejemplos}
+\clearpage
+\input{chapters/08_referencia}
+
+\end{document}

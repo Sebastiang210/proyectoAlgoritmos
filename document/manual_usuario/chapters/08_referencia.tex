@@ -1,0 +1,90 @@
+% ── CAPÍTULO 8: REFERENCIA RÁPIDA ───────────────────────────
+\section{Referencia Rápida}
+\label{sec:referencia}
+
+\subsection{Tabla de Parámetros}
+
+\begin{table}[H]
+    \centering
+    \caption{Parámetros de las estrategias KGeoMIP y KQNodes.}
+    \label{tab:params}
+    \begin{tabular}{lllll}
+        \toprule
+        \textbf{Parámetro} & \textbf{Tipo} & \textbf{Por defecto} & \textbf{Rango} & \textbf{Descripción} \\
+        \midrule
+        \lstinline|k|           & int   & 2       & $2\ldots5$   & Número de grupos \\
+        \lstinline|presupuesto| & int   & 10\,000 & $1\ldots\infty$ & Umbral exacto/heurístico \\
+        \lstinline|semilla|     & int   & 42      & cualquiera   & Semilla NumPy \\
+        \lstinline|modo_emd|    & str   & \lstinline|'l1'|     & \lstinline|'l1'|, \lstinline|'emd'| & Métrica de distancia \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Comandos Esenciales}
+
+\begin{table}[H]
+    \centering
+    \caption{Comandos de terminal más usados.}
+    \begin{tabular}{ll}
+        \toprule
+        \textbf{Comando} & \textbf{Acción} \\
+        \midrule
+        \lstinline|python src/shared/run/benchmark.py|  & Ejecutar benchmark completo \\
+        \lstinline|python src/shared/run/dashboard.py|  & Generar dashboard HTML \\
+        \lstinline|pip install -e .|                    & Instalar/actualizar dependencias \\
+        \lstinline|uv sync|                             & Sincronizar entorno con uv \\
+        \lstinline|python -c "import numpy; print(numpy.__version__)"| & Verificar numpy \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Archivos y Rutas Clave}
+
+\begin{table}[H]
+    \centering
+    \caption{Rutas importantes del proyecto.}
+    \begin{tabular}{ll}
+        \toprule
+        \textbf{Ruta} & \textbf{Contenido} \\
+        \midrule
+        \lstinline|src/shared/input/*.csv|             & Archivos de red de entrada \\
+        \lstinline|src/shared/output/{RED}/{EST}.csv|  & Resultados del benchmark \\
+        \lstinline|dashboard.html|                     & Dashboard interactivo \\
+        \lstinline|src/strategies/GeoMIP/kgeomip.py|  & Código KGeoMIP \\
+        \lstinline|src/strategies/QNodes/kqnodes.py|  & Código KQNodes \\
+        \lstinline|pyproject.toml|                     & Dependencias del proyecto \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Glosario}
+
+\begin{description}[leftmargin=3cm, style=nextline]
+    \item[\textbf{k-MIP}] \textit{k-Minimum Information Partition}. La partición de $k$ grupos que minimiza la pérdida de información EMD.
+    \item[\textbf{EMD}] \textit{Earth Mover's Distance}. Medida de cuán diferentes son dos distribuciones de probabilidad. En este proyecto, cuantifica la pérdida al separar el sistema en grupos.
+    \item[\textbf{IIT}] \textit{Teoría de la Información Integrada}. Marco matemático para cuantificar la conciencia de un sistema mediante la métrica $\Phi$ (phi).
+    \item[\textbf{N-Cubo}] Representación hipercúbica de la dinámica de un nodo binario. Con $n$ nodos, el espacio de estados tiene $2^n$ puntos.
+    \item[\textbf{TPM}] \textit{Transition Probability Matrix}. Tabla que describe con qué probabilidad el sistema pasa de cada estado presente a cada estado futuro.
+    \item[\textbf{Stirling $S(n,k)$}] Número de formas de dividir $n$ elementos en exactamente $k$ grupos. Crece exponencialmente: $S(10,4) \approx 34{,}000$.
+    \item[\textbf{Modo exacto}] El algoritmo evalúa \textit{todas} las $S(n,k)$ particiones posibles. Garantiza el óptimo pero puede ser lento.
+    \item[\textbf{Modo heurístico}] El algoritmo usa atajos geométricos (KGeoMIP) o greedy MAO (KQNodes) para explorar solo una fracción de las particiones. Más rápido, resultado aproximado.
+    \item[\textbf{MAO}] \textit{Maximum Adjacency Ordering}. Algoritmo greedy que construye la partición añadiendo iterativamente el elemento más conectado al grupo actual.
+    \item[\textbf{Oráculo Zeta}] Estructura precalculada que permite consultar la función submodular de QNodes en tiempo constante $O(1)$ por consulta.
+    \item[\textbf{GeoMIP}] Estrategia base de bi-partición basada en la geometría del hipercubo $n$-dimensional y la tabla de costos Hamming.
+    \item[\textbf{KGeoMIP}] Extensión de GeoMIP a $k$ grupos ($k = 2 \ldots 5$).
+    \item[\textbf{QNodes}] Estrategia base de bi-partición basada en el algoritmo de Queyranne para funciones submodulares, con precómputo de la transformada Zeta.
+    \item[\textbf{KQNodes}] Extensión de QNodes a $k$ grupos ($k = 2 \ldots 5$).
+    \item[\textbf{Pérdida (loss)}] Valor EMD de la mejor partición encontrada. Un valor cercano a 0 indica que el sistema puede descomponerse en partes casi independientes.
+\end{description}
+
+\subsection{Contacto y Soporte}
+
+Para reportar errores o solicitar nuevas funcionalidades, abra un \textit{issue} en el repositorio de GitHub del proyecto:
+
+\begin{center}
+\url{https://github.com/SebastianG210/proyectoAlgoritmos/issues}
+\end{center}
+
+\begin{nota}
+Incluya en el reporte: versión de Python, sistema operativo, el CSV de entrada, el comando ejecutado y el mensaje de error completo.
+\end{nota}

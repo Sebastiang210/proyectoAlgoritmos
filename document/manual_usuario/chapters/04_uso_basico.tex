@@ -1,0 +1,87 @@
+% ── CAPÍTULO 4: USO BÁSICO ───────────────────────────────────
+\section{Guía de Uso Básico}
+\label{sec:uso_basico}
+
+\subsection{Tutorial en Video}
+
+\begin{nota}[Video Tutorial]
+Se ha preparado un tutorial en video que cubre la instalación, configuración y primera ejecución del benchmark. El video está disponible en el enlace que se distribuirá junto con este manual. Se recomienda verlo antes de la primera ejecución.
+\end{nota}
+
+\subsection{Formato del Archivo CSV de Entrada}
+
+Cada red de prueba se describe mediante un archivo CSV ubicado en \lstinline|src/shared/input/|.
+
+\begin{lstlisting}[caption={Ejemplo de estructura CSV para una red de 3 nodos.}, label={lst:csv}]
+state,n0,n1,n2
+0,0.8,0.3,0.6
+1,0.2,0.7,0.4
+2,0.5,0.5,0.9
+3,0.9,0.1,0.3
+...
+\end{lstlisting}
+
+\begin{itemize}[itemsep=4pt]
+    \item \textbf{Columna \texttt{state}:} índice del estado presente (entero de $0$ a $2^n - 1$).
+    \item \textbf{Columnas \texttt{n0}, \texttt{n1}, \ldots:} probabilidad de que el nodo $i$ tome el valor $1$ en el estado siguiente, dado el estado presente.
+    \item El número de filas debe ser exactamente $2^n$.
+\end{itemize}
+
+\begin{peligro}
+Si el número de filas no es una potencia de dos exacta, el sistema lanzará un error al construir el N-Cubo. Revise el conteo antes de ejecutar.
+\end{peligro}
+
+\subsection{Ejecutar el Benchmark Completo}
+
+El script \lstinline|benchmark.py| ejecuta automáticamente todas las estrategias sobre todas las redes configuradas:
+
+\begin{lstlisting}[style=shell, caption={Ejecutar el benchmark completo.}]
+cd proyectoAlgoritmos
+python src/shared/run/benchmark.py
+\end{lstlisting}
+
+El benchmark muestra el progreso en la terminal con colores:
+\begin{itemize}[itemsep=2pt]
+    \item Verde: estrategia ejecutada exitosamente.
+    \item Amarillo: modo heurístico activado (umbral superado).
+    \item Rojo: error en la ejecución (ver Sección~\ref{sec:problemas}).
+\end{itemize}
+
+\subsection{Archivos de Salida CSV}
+
+Los resultados se guardan en \lstinline|src/shared/output/{RED}/{ESTRATEGIA}.csv|.
+
+\begin{lstlisting}[caption={Ejemplo de archivo de salida generado.}]
+index,loss,time,partition
+0,0.2140,0.0082,"[[(1,0),(0,0)],[(1,1),(1,2),(0,1),(0,2)]]"
+1,0.1180,0.0211,"[[(1,0)],[(1,1)],[(1,2),(0,0),(0,1),(0,2)]]"
+\end{lstlisting}
+
+\begin{itemize}[itemsep=4pt]
+    \item \textbf{\texttt{index}:} número de instancia del benchmark.
+    \item \textbf{\texttt{loss}:} pérdida EMD de la partición encontrada (a menor valor, mejor).
+    \item \textbf{\texttt{time}:} tiempo de ejecución en segundos.
+    \item \textbf{\texttt{partition}:} lista de grupos en formato Python. Cada tupla \texttt{(tiempo, índice)} representa un vértice donde \texttt{tiempo=1} es EFECTO (futuro) y \texttt{tiempo=0} es ACTUAL (presente).
+\end{itemize}
+
+\subsection{Generar el Dashboard}
+
+\begin{lstlisting}[style=shell, caption={Generar el dashboard interactivo.}]
+python src/shared/run/dashboard.py
+\end{lstlisting}
+
+Se generará el archivo \lstinline|dashboard.html| en el directorio raíz. Ábralo con cualquier navegador moderno (Chrome, Firefox, Edge).
+
+\begin{tip}
+Use \lstinline|Ctrl + Clic| en los nombres de series dentro del dashboard para mostrar u ocultar estrategias individuales y facilitar la comparación.
+\end{tip}
+
+\subsection{Interpretar la Pérdida EMD}
+
+La columna \texttt{loss} representa cuánta información se pierde al tratar los grupos de la partición como independientes:
+
+\begin{itemize}[itemsep=4pt]
+    \item \textbf{0.0}: sin pérdida — las partes son completamente independientes.
+    \item \textbf{$> 0.3$}: alta integración — el sistema tiene fuerte dependencia entre variables.
+    \item La partición con \textbf{menor \texttt{loss}} es la $k$-MIP: la más informativa.
+\end{itemize}

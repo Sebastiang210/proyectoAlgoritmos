@@ -1,0 +1,33 @@
+% ── CAPÍTULO 1: RESUMEN EJECUTIVO ───────────────────────────
+\section{Resumen Ejecutivo}
+\label{sec:resumen}
+
+\subsection{Descripción del Problema}
+
+El presente proyecto aborda la extensión del problema de la \textbf{Partición de Mínima Información} (MIP, \textit{Minimum Information Partition}) al caso general de $k$-particiones dentro del marco de la \textbf{Teoría de la Información Integrada} (IIT). El problema consiste en determinar cómo dividir un sistema de $n$ variables binarias en $k$ partes independientes de manera que se minimice la pérdida de información integrada. Formalmente, se busca la partición del sistema $V$ en $k$ subconjuntos disjuntos $S_1, S_2, \ldots, S_k$ que minimice la discrepancia entre la dinámica del sistema completo y la dinámica reconstruida desde las partes.
+
+\subsection{Enfoque Algorítmico}
+
+Se implementaron dos estrategias que extienden los algoritmos existentes de bi-particiones:
+
+\begin{itemize}[itemsep=4pt]
+    \item \textbf{KGeoMIP}: Extensión del algoritmo geométrico GeoMIP. Aprovecha la representación del espacio de estados como hipercubo $n$-dimensional y una tabla de costos de transiciones para generar y evaluar particiones candidatas en $k$ grupos ($k \in \{2,3,4,5\}$).
+
+    \item \textbf{KQNodes}: Extensión del algoritmo QNodes basado en el método de Queyranne para optimización submodular. Utiliza un oráculo Zeta precomputado y búsqueda exhaustiva o heurística greedy sobre las $\Stirling{n}{k}$ posibles $k$-particiones.
+\end{itemize}
+
+Ambas estrategias adaptan automáticamente su modo de búsqueda (exacto vs.\ heurístico) según el número de Stirling de segundo tipo $\Stirling{n}{k}$ respecto a un presupuesto configurable (por defecto $10{,}000$ evaluaciones).
+
+\subsection{Principales Resultados}
+
+Se ejecutaron benchmarks sobre sistemas de 5 a 22 variables (redes N5B, N10A, N10B, N15A, N20A, N21A, N22A). Los experimentos validan:
+
+\begin{itemize}[itemsep=4pt]
+    \item Para $k = 2$, ambas extensiones reproducen exactamente los resultados de GeoMIP y QNodes originales (validaciones TV-02 y TV-03).
+    \item KQNodes garantiza optimalidad exacta cuando $\Stirling{n}{k} \leq 10{,}000$.
+    \item KGeoMIP ofrece tiempos menores con búsqueda heurística guiada geométricamente.
+\end{itemize}
+
+\subsection{Limitaciones y Recomendaciones}
+
+La complejidad combinatoria de $\Stirling{n}{k}$ limita la búsqueda exacta a sistemas de tamaño moderado. Para $n \geq 15$ y $k \geq 3$, ambos algoritmos operan en modo heurístico. Se recomienda KQNodes cuando se requiere exactitud en sistemas pequeños, y KGeoMIP cuando prima la velocidad en sistemas grandes.

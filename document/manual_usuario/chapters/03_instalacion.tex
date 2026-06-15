@@ -1,0 +1,83 @@
+% ── CAPÍTULO 3: INSTALACIÓN ──────────────────────────────────
+\section{Instalación Paso a Paso}
+\label{sec:instalacion}
+
+\subsection{Método 1: Con pip (estándar)}
+
+\subsubsection{Paso 1 — Clonar el repositorio}
+
+\begin{lstlisting}[style=shell, caption={Clonar el repositorio desde GitHub.}]
+git clone https://github.com/SebastianG210/proyectoAlgoritmos.git
+cd proyectoAlgoritmos
+\end{lstlisting}
+
+\subsubsection{Paso 2 — Crear un entorno virtual}
+
+\begin{lstlisting}[style=shell, caption={Crear y activar el entorno virtual.}]
+# Crear el entorno
+python -m venv .venv
+
+# Activar en Windows PowerShell
+.venv\Scripts\Activate.ps1
+
+# Activar en Linux/macOS
+source .venv/bin/activate
+\end{lstlisting}
+
+\begin{aviso}
+En Windows, si aparece el error \textit{«la ejecución de scripts está deshabilitada»}, ejecute primero:\\
+\lstinline|Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser|
+\end{aviso}
+
+\subsubsection{Paso 3 — Instalar dependencias}
+
+\begin{lstlisting}[style=shell, caption={Instalar el proyecto en modo editable.}]
+pip install -e .
+\end{lstlisting}
+
+\subsubsection{Paso 4 — Verificar la instalación}
+
+\begin{lstlisting}[style=shell, caption={Verificar que las dependencias están instaladas correctamente.}]
+python -c "import numpy, plotly, pandas; print('OK')"
+\end{lstlisting}
+
+Si el resultado es \lstinline|OK|, la instalación fue exitosa.
+
+\subsection{Método 2: Con uv (recomendado)}
+
+\begin{lstlisting}[style=shell, caption={Instalación rápida con uv.}]
+# Instalar uv (si no está disponible)
+pip install uv
+
+# Clonar e instalar en un solo paso
+git clone https://github.com/SebastianG210/proyectoAlgoritmos.git
+cd proyectoAlgoritmos
+uv sync
+\end{lstlisting}
+
+\begin{tip}
+\lstinline|uv sync| lee el archivo \lstinline|pyproject.toml| y crea automáticamente el entorno virtual con todas las dependencias, sin pasos adicionales.
+\end{tip}
+
+\subsection{Estructura de Archivos tras la Instalación}
+
+\begin{lstlisting}[caption={Estructura relevante del proyecto después de instalar.}]
+proyectoAlgoritmos/
++-- src/
+|   +-- shared/
+|   |   +-- input/       <- Archivos CSV de redes de prueba
+|   |   \-- output/      <- Resultados generados aqui
+|   \-- strategies/      <- Algoritmos KGeoMIP y KQNodes
++-- pyproject.toml       <- Configuracion de dependencias
+\-- document/            <- Este manual
+\end{lstlisting}
+
+\subsection{Actualización del Software}
+
+\begin{lstlisting}[style=shell, caption={Actualizar a la versión más reciente.}]
+git pull origin master
+# Con pip:
+pip install -e . --upgrade
+# Con uv:
+uv sync
+\end{lstlisting}

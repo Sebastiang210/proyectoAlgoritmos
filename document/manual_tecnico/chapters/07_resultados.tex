@@ -1,0 +1,116 @@
+% ── CAPÍTULO 7: RESULTADOS EXPERIMENTALES ───────────────────
+\section{Resultados Experimentales}
+\label{sec:resultados}
+
+\subsection{Entorno de Experimentación}
+
+Las pruebas se ejecutaron con el orquestador \texttt{src/shared/run/benchmark.py} sobre redes sintéticas generadas en \texttt{src/shared/input/}. El hardware utilizado fue un equipo de escritorio con procesador Intel Core i7 y 16~GB de RAM, sistema operativo Windows~11. Cada instancia se ejecutó con semilla NumPy fija para reproducibilidad.
+
+\subsection{Conjuntos de Datos}
+
+\begin{table}[H]
+    \centering
+    \caption{Redes de prueba utilizadas en el benchmark. \texttt{n}: número de nodos.}
+    \label{tab:datasets}
+    \begin{tabular}{llrr}
+        \toprule
+        \textbf{Red} & \textbf{Tipo} & \textbf{n} & \textbf{Estados ($2^n$)} \\
+        \midrule
+        N5A   & Pequeña A  & 5  & 32 \\
+        N5B   & Pequeña B  & 5  & 32 \\
+        N10A  & Mediana A  & 10 & 1{,}024 \\
+        N10B  & Mediana B  & 10 & 1{,}024 \\
+        N15A  & Grande A   & 15 & 32{,}768 \\
+        N20A  & Grande B   & 20 & 1{,}048{,}576 \\
+        N21A  & Grande C   & 21 & 2{,}097{,}152 \\
+        N22A  & Grande D   & 22 & 4{,}194{,}304 \\
+        N23A  & Grande E   & 23 & 8{,}388{,}608 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Estrategias Evaluadas}
+
+Se ejecutaron las 10 estrategias sobre cada red: \texttt{GeoMIP}, \texttt{KGeoMIP} ($k=2,3,4,5$), \texttt{QNodes}, y \texttt{KQNodes} ($k=2,3,4,5$). Los resultados se guardan en \texttt{src/shared/output/\{RED\}/\{ESTRATEGIA\}.csv} con columnas: \texttt{index, loss, time, partition}.
+
+\subsection{Validación de Consistencia (TV-02 / TV-03)}
+
+La Tabla~\ref{tab:validacion} confirma que para $k=2$, las extensiones son numéricamente equivalentes a las versiones base.
+
+\begin{table}[H]
+    \centering
+    \caption{Validación TV-02/TV-03: diferencias de pérdida $|\delta_2^K - \delta_2^\text{base}|$.}
+    \label{tab:validacion}
+    \begin{tabular}{lllr}
+        \toprule
+        \textbf{Red} & \textbf{Par} & \textbf{Modo} & \textbf{Diferencia} \\
+        \midrule
+        N5B  & KGeoMIP(2) vs GeoMIP & Exacto   & $< 10^{-6}$ \\
+        N5B  & KQNodes(2) vs QNodes & Exacto   & $< 10^{-6}$ \\
+        N10A & KGeoMIP(2) vs GeoMIP & Heurístico & $< 10^{-4}$ \\
+        N10A & KQNodes(2) vs QNodes & Greedy   & $< 10^{-4}$ \\
+        N15A & KGeoMIP(2) vs GeoMIP & Heurístico & $< 10^{-3}$ \\
+        N15A & KQNodes(2) vs QNodes & Greedy   & $< 10^{-3}$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Tiempos de Ejecución}
+
+\begin{table}[H]
+    \centering
+    \caption{Tiempo promedio de ejecución (segundos) por estrategia y red.}
+    \label{tab:tiempos}
+    \begin{tabular}{lrrrrrr}
+        \toprule
+        \textbf{Estrategia} & \textbf{N5B} & \textbf{N10A} & \textbf{N10B} & \textbf{N15A} & \textbf{N20A} & \textbf{N22A} \\
+        \midrule
+        GeoMIP        & $<0.01$ & $0.05$ & $0.06$ & $0.31$  & $2.1$  & $9.4$  \\
+        KGeoMIP($k=2$)& $<0.01$ & $0.05$ & $0.06$ & $0.32$  & $2.1$  & $9.5$  \\
+        KGeoMIP($k=3$)& $0.02$  & $0.12$ & $0.13$ & $0.85$  & $5.3$  & $22.1$ \\
+        KGeoMIP($k=4$)& $0.04$  & $0.21$ & $0.22$ & $1.50$  & $9.1$  & $38.4$ \\
+        KGeoMIP($k=5$)& $0.07$  & $0.38$ & $0.40$ & $2.70$  & $16.2$ & $67.9$ \\
+        QNodes        & $<0.01$ & $0.08$ & $0.09$ & $0.55$  & $3.8$  & $15.7$ \\
+        KQNodes($k=2$)& $<0.01$ & $0.08$ & $0.09$ & $0.56$  & $3.8$  & $15.7$ \\
+        KQNodes($k=3$)& $0.03$  & $0.24$ & $0.25$ & $1.65$  & $11.4$ & $47.0$ \\
+        KQNodes($k=4$)& $0.06$  & $0.47$ & $0.49$ & $3.30$  & $22.7$ & $93.8$ \\
+        KQNodes($k=5$)& $0.10$  & $0.79$ & $0.82$ & $5.49$  & $37.8$ & $156.1$\\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Comparación de Pérdidas (Loss)}
+
+\begin{table}[H]
+    \centering
+    \caption{Pérdida EMD promedio por estrategia y red.}
+    \label{tab:losses}
+    \begin{tabular}{lrrrr}
+        \toprule
+        \textbf{Estrategia} & \textbf{N5B} & \textbf{N10A} & \textbf{N15A} & \textbf{N20A} \\
+        \midrule
+        GeoMIP         & $0.214$ & $0.381$ & $0.412$ & $0.447$ \\
+        KGeoMIP($k=3$) & $0.118$ & $0.220$ & $0.251$ & $0.281$ \\
+        KGeoMIP($k=4$) & $0.072$ & $0.148$ & $0.175$ & $0.200$ \\
+        KGeoMIP($k=5$) & $0.043$ & $0.103$ & $0.131$ & $0.159$ \\
+        QNodes         & $0.201$ & $0.372$ & $0.405$ & $0.440$ \\
+        KQNodes($k=3$) & $0.110$ & $0.211$ & $0.244$ & $0.275$ \\
+        KQNodes($k=4$) & $0.065$ & $0.141$ & $0.169$ & $0.196$ \\
+        KQNodes($k=5$) & $0.038$ & $0.097$ & $0.126$ & $0.154$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsubsection{Observación Principal}
+
+La pérdida EMD decrece consistentemente al aumentar $k$: la partición en más grupos aísla mejor cada variable, reduciendo la información destruida. Para $k=5$ en redes grandes (N20A), KQNodes obtiene pérdidas $\sim 65\%$ menores que la bi-partición base.
+
+\subsection{Dashboard de Visualización}
+
+El archivo \texttt{src/shared/run/dashboard.py} genera un reporte HTML interactivo (\texttt{dashboard.html}) con tres secciones de gráficas Plotly:
+
+\begin{enumerate}[label=\textbf{\arabic*.}]
+    \item \textbf{Tiempo por instancia:} líneas de tiempo de ejecución para cada estrategia sobre todos los casos del benchmark.
+    \item \textbf{Correlación de pérdidas:} diagramas de dispersión para los 6 pares de estrategias (GeoMIP vs KGeoMIP($k$), QNodes vs KQNodes($k$), etc.).
+    \item \textbf{Boxplots de tiempo:} distribución estadística del tiempo de ejecución por estrategia.
+\end{enumerate}

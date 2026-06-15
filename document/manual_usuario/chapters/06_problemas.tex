@@ -1,0 +1,96 @@
+% ── CAPÍTULO 6: SOLUCIÓN DE PROBLEMAS ───────────────────────
+\section{Solución de Problemas}
+\label{sec:problemas}
+
+\subsection{Errores de Instalación}
+
+\subsubsection{Error: \texttt{ModuleNotFoundError: No module named 'numpy'}}
+
+\textbf{Causa:} Las dependencias no fueron instaladas o el entorno virtual no está activado.
+
+\begin{lstlisting}[style=shell, caption={Solución: reinstalar dependencias.}]
+# Verificar que el entorno virtual esta activo
+# En Windows:
+.venv\Scripts\Activate.ps1
+# En Linux/macOS:
+source .venv/bin/activate
+
+# Reinstalar
+pip install -e .
+\end{lstlisting}
+
+\subsubsection{Error: \texttt{pyttsx3} no funciona en Linux/macOS}
+
+\textbf{Causa:} \lstinline|pyttsx3| requiere un motor de síntesis de voz del sistema operativo.
+
+\begin{lstlisting}[style=shell, caption={Instalar dependencia de voz en Ubuntu.}]
+sudo apt-get install espeak
+pip install pyttsx3
+\end{lstlisting}
+
+En macOS, el motor \textit{NSSpeechSynthesizer} debería funcionar sin instalación adicional. Si el error persiste, ignore la síntesis de voz: el benchmark funciona normalmente sin ella.
+
+\subsection{Errores de Formato en CSV}
+
+\subsubsection{Error: \texttt{ValueError: El tamaño del CSV no es potencia de 2}}
+
+\textbf{Causa:} El número de filas no corresponde a $2^n$ para ningún valor de $n$.
+
+\textbf{Solución:} Abra el CSV y verifique que tenga exactamente $2^n$ filas de datos (sin contar el encabezado). Para $n=3$ deben ser 8 filas, para $n=5$ son 32 filas, etc.
+
+\subsubsection{Error: \texttt{KeyError: 'state'}}
+
+\textbf{Causa:} El encabezado del CSV no contiene la columna \texttt{state} (con esa ortografía exacta).
+
+\textbf{Solución:} Asegúrese de que la primera columna del CSV se llama \texttt{state} (en minúsculas).
+
+\subsection{Errores de Memoria}
+
+\subsubsection{Error: \texttt{MemoryError} al ejecutar redes grandes}
+
+\textbf{Causa:} El modo exacto para $k \geq 3$ y $n \geq 15$ puede requerir varios GB de RAM.
+
+\begin{lstlisting}[style=python, caption={Reducir el presupuesto para forzar modo heurístico.}]
+# Forzar modo heuristico con presupuesto muy bajo
+estrategia = KQNodes(sistema, k=3, presupuesto=1_000)
+\end{lstlisting}
+
+\begin{aviso}
+El modo heurístico con presupuesto muy bajo puede dar resultados de baja calidad. Balance entre memoria disponible y calidad del resultado.
+\end{aviso}
+
+\subsection{Errores de Ejecución del Benchmark}
+
+\subsubsection{El benchmark termina con pérdida = 0 para todos los casos}
+
+\textbf{Causa posible A:} El subsistema analizado tiene un solo nodo (no se puede particionar).\\
+\textbf{Causa posible B:} El estado inicial coincide con todos los nodos en el mismo estado. \\
+\textbf{Solución:} Verifique que el archivo CSV tiene variabilidad en las probabilidades de transición.
+
+\subsubsection{El benchmark no genera archivos CSV en \texttt{output/}}
+
+\textbf{Causa:} Los directorios de salida no existen.
+
+\begin{lstlisting}[style=shell, caption={Crear directorios de salida manualmente.}]
+# En Windows PowerShell:
+New-Item -ItemType Directory -Force src\shared\output\N10A
+# En Linux/macOS:
+mkdir -p src/shared/output/N10A
+\end{lstlisting}
+
+\subsection{Tabla Resumen de Errores Comunes}
+
+\begin{longtable}{p{4.5cm}p{4.5cm}p{4.5cm}}
+    \toprule
+    \textbf{Error} & \textbf{Causa} & \textbf{Solución} \\
+    \midrule
+    \endhead
+    \lstinline|ModuleNotFoundError| & Entorno no activado & Activar venv y reinstalar \\[4pt]
+    \lstinline|ValueError: not power of 2| & CSV con filas incorrectas & Verificar $2^n$ filas \\[4pt]
+    \lstinline|KeyError: 'state'| & Encabezado incorrecto & Renombrar columna \\[4pt]
+    \lstinline|MemoryError| & Redes grandes modo exacto & Reducir presupuesto \\[4pt]
+    Pérdida siempre 0 & Sistema sin variabilidad & Revisar CSV de entrada \\[4pt]
+    Sin archivos en \lstinline|output/| & Directorios no existen & Crear con mkdir \\[4pt]
+    Tiempo excesivo ($>$10 min) & Modo exacto con $k \geq 4$ & Reducir $k$ o presupuesto \\
+    \bottomrule
+\end{longtable}

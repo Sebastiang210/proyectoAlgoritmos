@@ -1,0 +1,173 @@
+% ── CAPÍTULO 3: ARQUITECTURA DEL SOFTWARE ───────────────────
+\section{Arquitectura del Software}
+\label{sec:arquitectura}
+
+\subsection{Visión General}
+
+El sistema sigue una arquitectura modular basada en el \textbf{Patrón Strategy} \cite{gof1994}. La clase abstracta \texttt{SIA} define la interfaz común y cada estrategia concreta hereda e implementa su propio algoritmo de búsqueda.
+
+\subsection{Diagrama de Paquetes}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        pkg/.style={draw=primary, fill=blue!8, rounded corners=3pt,
+                    minimum width=3.2cm, minimum height=0.75cm, font=\small\ttfamily},
+        arr/.style={->, >=Stealth, thick, gray},
+        lbl/.style={font=\tiny\color{gray}, midway},
+    ]
+        \node[pkg] (models)     at (0,0)    {src/models/};
+        \node[pkg] (strategies) at (4.5,0)  {src/strategies/};
+        \node[pkg] (funcs)      at (9,0)    {src/funcs/};
+        \node[pkg] (constants)  at (0,-2)   {src/constants/};
+        \node[pkg] (shared)     at (4.5,-2) {src/shared/};
+        \node[pkg] (tests)      at (9,-2)   {tests/};
+
+        \draw[arr] (strategies) -- (models)     node[lbl,above]{usa};
+        \draw[arr] (strategies) -- (funcs)      node[lbl,above]{usa};
+        \draw[arr] (strategies) -- (constants)  node[lbl,left]{usa};
+        \draw[arr] (shared)     -- (strategies) node[lbl,above]{ejecuta};
+        \draw[arr] (tests)      -- (strategies) node[lbl,above]{valida};
+        \draw[arr] (models)     -- (funcs)      node[lbl,above]{usa};
+    \end{tikzpicture}
+    \caption{Diagrama de paquetes del proyecto K-QGMIP.}
+    \label{fig:pkg}
+\end{figure}
+
+\subsection{Diagrama de Clases}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        cls/.style={draw=primary, fill=blue!8, rounded corners=2pt,
+                    font=\scriptsize, text width=3.5cm, align=center},
+        abs/.style={draw=primary!80, fill=yellow!15, rounded corners=2pt,
+                    font=\scriptsize, text width=3.5cm, align=center},
+        inh/.style={->, >={Triangle[open]}, thick, primary},
+        cmp/.style={->, >=Diamond, thick, secondary},
+    ]
+        % SIA
+        \node[abs] (sia) at (4.5,9) {
+            \textbf{\textit{SIA (abstracta)}}\\[2pt]\hrule\vspace{2pt}
+            \texttt{sistema: System}\\
+            \texttt{distribucion: NDArray}\\[2pt]\hrule\vspace{2pt}
+            \textit{resolver(): Solution}\\
+            \texttt{sia\_preparar\_subsistema()}
+        };
+        % GeoMIP
+        \node[cls] (geo) at (1,5.5) {
+            \textbf{GeoMIP}\\[2pt]\hrule\vspace{2pt}
+            \texttt{tabla\_transiciones}\\
+            \texttt{caminos: dict}\\[2pt]\hrule\vspace{2pt}
+            \texttt{resolver()}\\
+            \texttt{find\_mip()}\\
+            \texttt{calcular\_costo()}
+        };
+        % KGeoMIP
+        \node[cls] (kgeo) at (1,1.5) {
+            \textbf{KGeoMIP}\\[2pt]\hrule\vspace{2pt}
+            \texttt{k: int}\\
+            \texttt{presupuesto: int}\\[2pt]\hrule\vspace{2pt}
+            \texttt{ejecutar\_k(k)}\\
+            \texttt{find\_kmip()}\\
+            \texttt{generar\_candidatas()}
+        };
+        % QNodes
+        \node[cls] (qn) at (8,5.5) {
+            \textbf{QNodes}\\[2pt]\hrule\vspace{2pt}
+            \texttt{\_sumas: NDArray}\\
+            \texttt{memoria\_bipart}\\[2pt]\hrule\vspace{2pt}
+            \texttt{resolver()}\\
+            \texttt{algorithm(vertices)}\\
+            \texttt{funcion\_submodular()}
+        };
+        % KQNodes
+        \node[cls] (kqn) at (8,1.5) {
+            \textbf{KQNodes}\\[2pt]\hrule\vspace{2pt}
+            \texttt{k: int}\\
+            \texttt{presupuesto: int}\\[2pt]\hrule\vspace{2pt}
+            \texttt{resolver()}\\
+            \texttt{\_exhaustive\_k\_part()}\\
+            \texttt{\_greedy\_k\_part()}
+        };
+        % System
+        \node[cls] (sys) at (4.5,5.5) {
+            \textbf{System}\\[2pt]\hrule\vspace{2pt}
+            \texttt{ncubos: tuple}\\
+            \texttt{estado\_inicial}\\[2pt]\hrule\vspace{2pt}
+            \texttt{bipartir()}\\
+            \texttt{distribucion\_marginal()}
+        };
+        % NCube
+        \node[cls] (nc) at (4.5,1.5) {
+            \textbf{NCube}\\[2pt]\hrule\vspace{2pt}
+            \texttt{indice: int}\\
+            \texttt{dims, data: NDArray}\\[2pt]\hrule\vspace{2pt}
+            \texttt{condicionar()}\\
+            \texttt{marginalizar()}
+        };
+
+        \draw[inh] (geo)  -- (sia);
+        \draw[inh] (qn)   -- (sia);
+        \draw[inh] (kgeo) -- (geo);
+        \draw[inh] (kqn)  -- (qn);
+        \draw[cmp] (sia)  -- (sys) node[midway,right,font=\tiny]{tiene};
+        \draw[cmp] (sys)  -- (nc)  node[midway,right,font=\tiny]{contiene};
+    \end{tikzpicture}
+    \caption{Diagrama de clases UML. Triángulo abierto = herencia; rombo = composición.}
+    \label{fig:clases}
+\end{figure}
+
+\subsection{Estructura de Directorios del Código}
+
+\begin{lstlisting}[caption={Árbol de directorios del proyecto.}]
+proyectoAlgoritmos/
++-- src/
+|   +-- models/
+|   |   +-- base/
+|   |   |   +-- sia.py          # Clase abstracta SIA
+|   |   |   \-- application.py  # Singleton global
+|   |   \-- core/
+|   |       +-- system.py       # Clase System
+|   |       +-- ncube.py        # Clase NCube
+|   |       \-- solution.py     # Clase Solution
+|   +-- strategies/
+|   |   +-- GeoMIP/
+|   |   |   +-- geomip.py       # GeoMIP original
+|   |   |   \-- kgeomip.py      # KGeoMIP (k-particiones)
+|   |   \-- QNodes/
+|   |       +-- qnodes.py       # QNodes original
+|   |       \-- kqnodes.py      # KQNodes (k-particiones)
+|   +-- funcs/
+|   |   +-- iit.py              # emd_efecto, literales
+|   |   +-- format.py           # Formateo de particiones
+|   |   \-- analytic.py         # Transformada Zeta
+|   +-- constants/base.py       # ACTUAL, EFFECT, ...
+|   \-- shared/
+|       +-- input/              # Archivos CSV de casos
+|       +-- output/             # Resultados por red
+|       \-- run/
+|           +-- benchmark.py    # Orquestador principal
+|           \-- dashboard.py    # Visualizacion HTML
++-- tests/
+|   \-- test_qnodes_vs_phi.py
+\-- pyproject.toml
+\end{lstlisting}
+
+\subsection{Patrones de Diseño Aplicados}
+
+\begin{description}[leftmargin=2cm, style=nextline]
+    \item[\textbf{Strategy}] \texttt{SIA} define la interfaz \texttt{resolver(): Solution}. Cada estrategia la implementa de manera independiente.
+    \item[\textbf{Template Method}] \texttt{sia\_preparar\_subsistema()} en la clase base define el flujo de preparación; las subclases lo invocan y aplican su propia lógica de búsqueda.
+    \item[\textbf{Singleton}] \texttt{Application} mantiene la configuración global (semilla NumPy, tipo de EMD, notación) como única instancia.
+    \item[\textbf{Memoización}] \texttt{NCube.memo} cachea marginalizaciones. \texttt{memoria\_kparticiones} y \texttt{memoria\_bipart} evitan recomputar evaluaciones repetidas.
+\end{description}
+
+\subsection{Decisiones Arquitectónicas Clave}
+
+\begin{enumerate}[label=\textbf{\arabic*.}]
+    \item \textbf{Reutilización de la tabla de costos:} Se construye una sola vez en $\bigO{n \cdot 2^n}$ y se reutiliza para todos los valores de $k$.
+    \item \textbf{Oráculo Zeta:} Precomputa las sumas de hiper-cara una vez, reduciendo cada consulta del oráculo a $\bigO{1}$ amortizado.
+    \item \textbf{Umbral exacto/heurístico:} $\Stirling{n}{k} = 10{,}000$ equilibra exactitud y tiempo de ejecución ($< 1\,$s para casos típicos).
+    \item \textbf{Dos interfaces:} \texttt{resolver()} para flujos optimizados y \texttt{aplicar\_estrategia()} para compatibilidad legada con TPM cruda.
+\end{enumerate}

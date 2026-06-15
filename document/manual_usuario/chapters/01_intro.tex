@@ -1,0 +1,74 @@
+% ── CAPÍTULO 1: INTRODUCCIÓN Y VISIÓN GENERAL ───────────────
+\section{Introducción y Visión General}
+\label{sec:intro}
+
+\subsection{¿Qué es K-QGMIP?}
+
+\textbf{K-QGMIP} es una herramienta de software desarrollada en Python para analizar sistemas de variables binarias con dinámicas estocásticas. Su objetivo principal es encontrar la \textbf{partición mínima de información} (\textit{k-MIP}) de un sistema: la forma de dividir las variables en $k$ grupos de modo que se pierda la menor cantidad posible de información al tratar cada grupo de forma independiente.
+
+\begin{nota}
+Este software está diseñado para investigadores e ingenieros interesados en la \textbf{Teoría de la Información Integrada (IIT)}: un marco matemático que estudia cómo los sistemas integran información y que está relacionado con el estudio de la conciencia en sistemas físicos.
+\end{nota}
+
+\subsection{¿Para qué sirve?}
+
+El software responde a la pregunta: \textit{¿cuál es la mejor manera de dividir las $n$ variables de un sistema en exactamente $k$ grupos, de forma que la pérdida de información sea mínima?}
+
+\vspace{6pt}
+\textbf{Aplicaciones típicas:}
+\begin{itemize}[itemsep=4pt]
+    \item Análisis de redes neuronales artificiales o biológicas.
+    \item Estudio de dependencias entre variables en sistemas complejos.
+    \item Comparación de múltiples estrategias de particionamiento ($k=2$ hasta $k=5$).
+    \item Exploración de cómo aumentar $k$ reduce la pérdida de información.
+\end{itemize}
+
+\subsection{Estrategias Disponibles}
+
+K-QGMIP implementa cuatro estrategias (dos bases y dos extensiones):
+
+\begin{table}[H]
+    \centering
+    \caption{Estrategias de particionamiento disponibles.}
+    \begin{tabular}{lll}
+        \toprule
+        \textbf{Estrategia} & \textbf{k soportado} & \textbf{Descripción breve} \\
+        \midrule
+        GeoMIP        & $k=2$ & Búsqueda geométrica en hipercubo \\
+        KGeoMIP       & $k=2\ldots5$ & Extensión de GeoMIP a $k$ grupos \\
+        QNodes        & $k=2$ & Heurística MAO con oráculo submodular \\
+        KQNodes       & $k=2\ldots5$ & Extensión de QNodes a $k$ grupos \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Resultado Principal: el Dashboard}
+
+Al terminar el benchmark, el software genera un archivo \textbf{dashboard.html} que puede abrirse en cualquier navegador web. Contiene:
+
+\begin{enumerate}[label=\textbf{\arabic*.}]
+    \item \textbf{Tiempos de ejecución} por instancia y estrategia (gráfico de líneas interactivo).
+    \item \textbf{Correlación de pérdidas} entre estrategias pares (diagramas de dispersión).
+    \item \textbf{Distribución estadística} de tiempos (boxplots).
+\end{enumerate}
+
+\subsection{Convenciones de Este Manual}
+
+\begin{itemize}[itemsep=4pt]
+    \item \lstinline|texto así| indica comandos de terminal o nombres de archivos/carpetas.
+    \item \textbf{Negrita} marca conceptos importantes la primera vez que aparecen.
+    \item Las cajas de colores señalan información especial:
+\end{itemize}
+
+\begin{nota}
+Información útil o contexto adicional.
+\end{nota}
+\begin{aviso}
+Advertencia: algo podría salir mal si no se sigue la indicación.
+\end{aviso}
+\begin{peligro}
+Acción que puede dañar datos o generar resultados incorrectos.
+\end{peligro}
+\begin{tip}
+Sugerencia para trabajar de forma más eficiente.
+\end{tip}
