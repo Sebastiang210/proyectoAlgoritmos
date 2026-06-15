@@ -94,7 +94,7 @@ uv run python main.py
 ---
 
 ## 6. Archivos clave modificados esta sesión
-
+  
 | Archivo | Cambio |
 |---|---|
 | `source/Analysis/main.py` | Añadido `__main__` al final (Modo 2 por defecto: k-CSV) |

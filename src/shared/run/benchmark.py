@@ -1,3 +1,4 @@
+
 """
 Run benchmarks and save results to CSV.
 
@@ -29,7 +30,7 @@ NETWORK_CONFIGS = {
     "N5B": {"n": 5, "tpm": "N5B.csv"},
     "N5A": {"n": 5, "tpm": "N5A.csv"},
     "N10A": {"n": 10, "tpm": "N10A.csv"},
-    "N10B": {"n": 10, "tpm": "N10A.csv"},
+    "N10B": {"n": 10, "tpm": "N10B.csv"},
     "N15A": {"n": 15, "tpm": "N15A.csv"},
     "N20A": {"n": 20, "tpm": "N20A.csv"},
     "N21A": {"n": 21, "tpm": "N21A.csv"},
@@ -40,6 +41,21 @@ NETWORK_CONFIGS = {
 
 def run_benchmark(network: str, n: int, tpm_file: str) -> None:
     """Run all strategies and save to CSV."""
+    network_dir = f"{OUTPUT_DIR}/{network}"
+    expected_files = {
+        "GeoMIP", "K2GeoMIP", "K3GeoMIP", "K4GeoMIP", "K5GeoMIP",
+        "QNodes", "K2QNodes", "K3QNodes", "K4QNodes", "K5QNodes"
+    }
+    existing = set()
+    if os.path.isdir(network_dir):
+        existing = {f.replace(".csv", "") for f in os.listdir(network_dir) if f.endswith(".csv")}
+    missing = expected_files - existing
+    if not missing:
+        print(f"\n{network} benchmarks already complete, skipping.")
+        return
+    elif existing:
+        print(f"\n{network}: missing {missing}, re-running...")
+
     tpm = np.genfromtxt(f"{SAMPLES_DIR}/{tpm_file}", delimiter=',')
 
     results = {
@@ -108,8 +124,9 @@ def run_benchmark(network: str, n: int, tpm_file: str) -> None:
         print(f"  Case {idx}: GeoMIP={geo_time:.4f}s, QNodes={qn_time:.4f}s")
 
     # Save to CSV
+    os.makedirs(network_dir, exist_ok=True)
     for name, data in results.items():
-        filepath = f"{OUTPUT_DIR}/{network}-{name}.csv"
+        filepath = f"{network_dir}/{name}.csv"
         with open(filepath, "w", newline="") as f_out:
             writer = csv.writer(f_out)
             writer.writerow(["index", "loss", "time", "partition"])
@@ -120,8 +137,8 @@ def run_benchmark(network: str, n: int, tpm_file: str) -> None:
 
 def main():
     parser = argparse.ArgumentParser(description="Run benchmarks")
-    parser.add_argument("--networks", nargs="+", default=["N5B", "N10A"],
-                        help="Networks to benchmark (default: N5B N10A)")
+    parser.add_argument("--networks", nargs="+", default=list(NETWORK_CONFIGS.keys()),
+                        help="Networks to benchmark (default: all)")
 
     args = parser.parse_args()
 
